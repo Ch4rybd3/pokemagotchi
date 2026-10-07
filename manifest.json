@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "ch4rybd3.pokemagotchi",
+  "name": "Pokemagotchi",
+  "version": "8.0.0",
+  "author": "Ch4rybd3",
+  "description": "A tiny Pokémon tamagotchi for your bar: raise, catch, box, train and evolve all 905 Pokémon, hunt shinies with the Nav-Dex and teach them moves",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Pokemagotchi",
+    "description": "Raise, catch and evolve Pokémon",
+    "category": "Fun",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}
