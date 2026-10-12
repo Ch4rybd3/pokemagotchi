@@ -4,6 +4,7 @@ import Quickshell.Io
 import qs.Commons
 import qs.Ui
 import "Pet.js" as Pet
+import "Expedition.js" as Exp
 
 BarWidget {
   id: root
@@ -21,7 +22,8 @@ BarWidget {
   property var save: Pet.freshSave()
   property bool loaded: false
   property real now: Date.now()
-  readonly property var view: Pet.tick(Pet.copy(save), now)
+  // Expeditions run first, so a team that just came home is back at the Day Care for Pet.tick.
+  readonly property var view: Pet.tick(Exp.tick(Pet.copy(save), now), now)
   readonly property var pet: Pet.current(view)
   readonly property bool hasPet: pet !== null
   readonly property string speciesName: hasPet ? Pet.name(pet.species) : ""
@@ -31,9 +33,12 @@ BarWidget {
   readonly property int encountersPerWindow: Pet.encountersPerWindow(view, now)
   readonly property string incenseLeft: Pet.incenseLeft(view, now)
   readonly property int refillMinutes: Pet.minutesToRefill(now)
+  readonly property bool partnerAway: hasPet && Pet.isAway(view, view.current)
+  readonly property var expeditions: view.expeditions || []
+  readonly property bool expeditionNews: expeditions.some(function(x) { return x.status === "done" && !x.seen })
 
-  // "pet" | "picker" | "box" | "confirm" | "evolve" | "encounter" | "found" | "bag"
-  // | "info" | "moves" | "relearn" | "daycare" | "train"
+  // "pet" | "menu" | "picker" | "box" | "confirm" | "evolve" | "encounter" | "found" | "bag"
+  // | "info" | "moves" | "relearn" | "daycare" | "train" | "expedition" | "shop"
   property string mode: "pet"
   property string message: ""
   property string query: ""
@@ -49,7 +54,14 @@ BarWidget {
   property bool busy: false
   property int shakeLoops: 1
   property var pendingThrow: null
-  property string foundItem: ""
+  property var foundItems: []         // [{ id, count }] from the last search
+  // Expedition followed in the popup, a clock for its walk, the log entry opened
+  property string expId: ""
+  property real expClock: Date.now()
+  property var expOpenEntry: null
+  readonly property var followed: expId ? Exp.find(view, expId) : null
+  onFollowedChanged: if (mode === "expedition") Qt.callLater(markExpeditionSeen)
+  property string ballItem: "poke-ball"
 
   // Summary page, boxes and Day Care. A ref is "root" (Day Care) or "root/N" (box).
   property string infoRef: ""
@@ -61,10 +73,16 @@ BarWidget {
   // Moves page: the move shown in detail, and a move waiting for a slot to replace
   property int moveSlot: -1
   property int relearnId: 0
-  property int daycarePage: 0
-  readonly property int daycareSize: 10
   readonly property var ownedRoots: Pet.ownedRoots(view)
-  readonly property int daycarePages: Math.max(1, Math.ceil(ownedRoots.length / daycareSize))
+  // Who plays in the Day Care field: its members, plus anyone training at the doll
+  readonly property var daycareWalkers: ownedRoots.filter(function(r) {
+    return !Pet.isAway(view, r) && (Pet.inDaycare(view, r) || !!view.pets[r].training)
+  })
+  // Shop
+  property string shopTab: "buy"      // "buy" | "sell"
+  property int shopShelf: 0
+  property string shopItem: ""
+  property int shopQty: 1
   property string selectedItem: ""
   property int trainStat: 1
   property int trainTarget: 252
@@ -121,15 +139,22 @@ BarWidget {
     var t = Date.now()
     var before = Pet.current(save)
     var known = before && before.moves ? before.moves.slice() : null
-    var s = Pet.tick(Pet.copy(save), t)
+    var s = Pet.tick(Exp.tick(Pet.copy(save), t), t)
     var after = Pet.current(s)
     var learned = known && after && s.current === save.current
       ? after.moves.filter(function(m) { return known.indexOf(m) < 0 }) : []
     var result = fn(s, t)
     var evo = Pet.maybeEvolve(s, t)
+    var back = (s.expeditions || []).filter(function(x) { return x.status === "done" && !x.notified })
+    back.forEach(function(x) { x.notified = true })
     save = s
     now = t
     stateFile.setText(JSON.stringify(s) + "\n")
+    back.forEach(function(x) {
+      notify("⛰ Your team is back from " + Exp.title(x) + "!",
+             Exp.OUTCOMES[x.report.outcome] + " · B" + Math.max(1, x.report.floor) + "F · " + x.kos + " wild Pokémon defeated · ₽" + x.report.money
+             + (x.report.recruits.length ? " · " + x.report.recruits.map(function(r) { return Pet.name(r.species) }).join(", ") + " joined you!" : ""))
+    })
     if (evo) evolved(evo)
     if (learned.length) notify(Pet.name(after.species) + " learned " + learned.map(Pet.moveName).join(", ") + "!",
                                "Open its Moves page to see them or bring back an older move.")
@@ -321,18 +346,26 @@ BarWidget {
     message = Pet.name(wildSlug) + " fled!"
   }
 
-  function throwBall() {
+  function throwBall(kind) {
     if (busy || encounterOver) return
-    var r = mutate(function(s, t) { return Pet.throwBall(s, t) })
+    var b = kind || "poke-ball"
+    if (!(view.bag[b] > 0)) {
+      message = Pet.ballsLeft(view) > 0 ? "You don't have any " + Pet.itemName(b) + "s left."
+                                        : "You're out of Poké Balls! Search around to find more."
+      return
+    }
+    var r = mutate(function(s, t) { return Pet.throwBall(s, t, b) })
     if (!r) return
     if (r.result === "full") {
       message = Pet.name(wildSlug) + "'s box is full (" + Pet.BOX_SIZE + "). Release one first."
       return
     }
+    if (r.result === "noball") return
     busy = true
     pendingThrow = r
+    ballItem = b
     shakeLoops = Math.max(1, r.shakes)
-    message = "You threw a Poké Ball!"
+    message = "You threw " + (b === "ultra-ball" ? "an " : "a ") + Pet.itemName(b) + "!"
     throwAnim.restart()
   }
 
@@ -410,13 +443,87 @@ BarWidget {
       message = "You already searched around. Try again in " + refillMinutes + " min."
       return
     }
-    var r = mutate(function(s, t) { return Pet.searchItem(s, t) })
-    if (r === "") { message = "Nothing new around here… your bag already has every item!"; return }
+    var r = mutate(function(s, t) { return Pet.search(s, t) })
     if (!r) return
-    foundItem = r
+    foundItems = r
     mode = "found"
-    message = "You found a " + Pet.itemName(r) + "!"
+    var total = r.reduce(function(a, f) { return a + f.count }, 0)
+    message = "You searched the area and found " + total + " items!"
     sparkle.restart()
+  }
+
+  // The window is for planning (and history); teams are followed here.
+  function toggleDaycare(r) {
+    message = mutate(function(s) { return Pet.toggleDaycare(s, r) })
+  }
+
+  // ---- Menu and shop ----
+
+  function openMenuItem(id) {
+    message = ""
+    if (id === "partner") home()
+    else if (id === "pokedex") { query = ""; mode = "picker"; searchField.forceActiveFocus() }
+    else if (id === "bag") mode = "bag"
+    else if (id === "shop") { shopItem = ""; shopQty = 1; mode = "shop" }
+    else if (id === "daycare") mode = "daycare"
+    else if (id === "training") {
+      if (!hasPet) { message = "You need a partner Pokémon first."; return }
+      if (partnerAway) { message = speciesName + " is away on an expedition."; return }
+      openTrainingFor(view.current)
+    }
+    else if (id === "expeditions") openExpeditions("new")
+    else if (id === "history") openExpeditions("history")
+    else if (id === "summary") { if (hasPet) showInfo(view.current, "pet") }
+  }
+
+  function pickShopItem(id) {
+    shopItem = id
+    shopQty = 1
+    message = ""
+  }
+
+  function shopDeal() {
+    var id = shopItem, n = shopQty, selling = shopTab === "sell"
+    var err = mutate(function(s, t) { return selling ? Pet.sell(s, id, n) : Pet.buy(s, id, n, t) })
+    if (err === null || err === undefined) return
+    if (err) { message = err; return }
+    message = (selling ? "Sold " : "Bought ") + n + " × " + Pet.itemName(id) + " for ₽" + (selling ? Pet.sellPrice(id) : Pet.price(id)) * n + "."
+    if (selling && !(view.bag[id] > 0)) shopItem = ""
+    shopQty = 1
+  }
+
+  function openExpeditions(which) {
+    close()
+    expeditionWindow.open(which || "new")
+  }
+
+  function followExpedition(id) {
+    if (!opened) opened = true
+    expId = id
+    expOpenEntry = null
+    expClock = Date.now()
+    message = ""
+    mode = "expedition"
+    Qt.callLater(markExpeditionSeen)
+  }
+
+  function markExpeditionSeen() {
+    var x = followed
+    if (!x || x.status !== "done" || x.seen) return
+    var id = x.id
+    mutate(function(s) { var e = Exp.find(s, id); if (e) e.seen = true })
+  }
+
+  function recallExpedition() {
+    var id = expId
+    mutate(function(s, t) { Exp.recall(s, id, t) })
+  }
+
+  function closeReport() {
+    var id = expId
+    mutate(function(s) { Exp.dismiss(s, id) })
+    expId = ""
+    home()
   }
 
   implicitWidth: Math.max(barSize, (hasPet ? barSprite.width : barBall.width) + 6)
@@ -440,12 +547,33 @@ BarWidget {
     }
   }
 
-  // Display-only refresh; nothing is written here.
+  // Display refresh. It only writes when an expedition just came home, to
+  // notify once (the flag is saved, so the other bars won't notify again).
   Timer {
     interval: 30000
     running: true
     repeat: true
-    onTriggered: root.now = Date.now()
+    onTriggered: {
+      root.now = Date.now()
+      if (root.expeditions.some(function(x) { return x.status === "done" && !x.notified })) root.mutate(function() {})
+    }
+  }
+
+  ExpeditionWindow {
+    id: expeditionWindow
+    host: root
+  }
+
+  // Keeps the corridor moving while you watch
+  Timer {
+    interval: 1000
+    running: root.opened && root.mode === "expedition"
+    repeat: true
+    onTriggered: {
+      root.expClock = Date.now()
+      // Refresh the simulation now and then, so finished floors show up
+      if (Math.floor(root.expClock / 1000) % 10 === 0) root.now = root.expClock
+    }
   }
 
   component PetButton: Rectangle {
@@ -571,6 +699,7 @@ BarWidget {
       shiny: root.hasPet && root.pet.shiny
       fitWidth: 36
       fitHeight: root.barSize - 4
+      opacity: root.partnerAway ? 0.45 : 1
     }
 
     ItemSprite {
@@ -586,6 +715,16 @@ BarWidget {
       width: 5; height: 5; radius: 3
       color: root.accent
       anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.margins: 2
+    }
+
+    // A team is back with a report to read
+    Rectangle {
+      visible: root.expeditionNews
+      width: 5; height: 5; radius: 3
+      color: root.gold
+      anchors.left: parent.left
       anchors.top: parent.top
       anchors.margins: 2
     }
@@ -606,12 +745,13 @@ BarWidget {
     open: root.opened
     focusTarget: root.mode === "picker" ? searchField : null
     contentWidth: popup.fittedContentWidth(Style.space(root.mode === "daycare" ? 560
-                                                     : ["info", "box", "moves", "relearn"].indexOf(root.mode) >= 0 ? 400
+                                                     : ["info", "box", "moves", "relearn", "expedition", "shop", "menu"].indexOf(root.mode) >= 0 ? 400
                                                      : root.mode === "bag" ? 340 : 300))
     contentHeight: popup.fittedContentHeight(content.implicitHeight)
 
     Column {
       id: content
+      objectName: "pokemagotchi-popup"
       width: parent.width
       spacing: Style.space(10)
 
@@ -625,13 +765,16 @@ BarWidget {
           anchors.verticalCenter: parent.verticalCenter
           width: Math.min(implicitWidth, headerInfo.x - Style.space(10))
           elide: Text.ElideRight
-          text: (root.mode === "picker" ? "POKÉDEX"
+          text: (root.mode === "menu" ? "MENU"
+               : root.mode === "shop" ? "SHOP"
+               : root.mode === "picker" ? "POKÉDEX"
                : root.mode === "box" ? Pet.name(root.boxRoot).toUpperCase() + " BOX"
                : (root.mode === "moves" || root.mode === "relearn") && root.infoPet ? Pet.name(root.infoPet.species).toUpperCase()
                : root.mode === "bag" ? "BAG"
                : root.mode === "found" ? "EXPLORE"
                : root.mode === "encounter" ? Pet.name(root.wildSlug).toUpperCase()
                : root.mode === "daycare" ? "DAY CARE"
+               : root.mode === "expedition" && root.followed ? Exp.title(root.followed).toUpperCase()
                : (root.mode === "info" || root.mode === "train") && root.infoPet ? Pet.name(root.infoPet.species).toUpperCase()
                : root.mode === "evolve" && root.evolvePet ? Pet.name(root.evolvePet.species).toUpperCase()
                : root.hasPet ? root.speciesName.toUpperCase() : "NO POKÉMON") + "  ▾"
@@ -648,10 +791,9 @@ BarWidget {
             cursorShape: Qt.PointingHandCursor
             onClicked: {
               if (root.busy) return
-              if (root.mode === "picker") { root.home(); return }
-              root.query = ""
-              root.mode = "picker"
-              searchField.forceActiveFocus()
+              if (root.mode === "menu") { root.home(); return }
+              root.message = ""
+              root.mode = "menu"
             }
           }
         }
@@ -661,14 +803,17 @@ BarWidget {
           anchors.right: shinyChip.visible ? shinyChip.left : parent.right
           anchors.rightMargin: shinyChip.visible ? Style.space(10) : 0
           anchors.verticalCenter: parent.verticalCenter
-          text: root.mode === "picker" ? Pet.ownedCount(root.view) + " / " + Pet.familyTotal() + (Pet.hasCharm(root.view) ? "" : " caught")
+          text: root.mode === "menu" || root.mode === "shop" ? "₽ " + Pet.money(root.view).toLocaleString(Qt.locale("en_US"), "f", 0)
+              : root.mode === "picker" ? Pet.ownedCount(root.view) + " / " + Pet.familyTotal() + (Pet.hasCharm(root.view) ? "" : " caught")
               : root.mode === "box" ? Pet.familyCount(root.view, root.boxRoot) + " / " + Pet.BOX_SIZE
               : root.mode === "moves" ? "Moves"
               : root.mode === "relearn" ? "Move Reminder"
               : root.mode === "bag" ? Pet.bagItems(root.view).length + (Pet.bagItems(root.view).length === 1 ? " item" : " items")
               : root.mode === "encounter" ? "Lv. " + root.wildLevel
               : root.mode === "found" ? ""
-              : root.mode === "daycare" ? "Box " + (root.daycarePage + 1) + " / " + root.daycarePages + "  ·  " + root.ownedRoots.length + " Pokémon"
+              : root.mode === "expedition" && root.followed ? Exp.DIFFICULTIES[root.followed.diff].name
+                + (root.followed.status === "running" ? "  ·  B" + Exp.progress(root.followed, root.expClock).floor + "F / " + root.followed.floors : "")
+              : root.mode === "daycare" ? (root.view.daycare || []).length + " / " + Pet.DAYCARE_SIZE + " Pokémon"
               : root.mode === "train" && root.trainPet ? (root.trainKind === "xp" ? "Lv. " + Pet.level(root.trainPet)
                                                        : "EVs " + Math.floor(Pet.evTotal(root.trainPet)) + " / " + Pet.EV_MAX_TOTAL)
               : root.mode === "evolve" && root.evolvePet ? "Lv. " + Pet.level(root.evolvePet)
@@ -704,6 +849,348 @@ BarWidget {
             font.bold: true
           }
         }
+      }
+
+      // ---- Menu: every place, like a phone's home screen ----
+      Column {
+        visible: root.mode === "menu"
+        width: parent.width
+        spacing: Style.space(10)
+
+        Grid {
+          id: menuGrid
+          width: parent.width
+          columns: 3
+          spacing: Style.space(10)
+          readonly property real tile: (width - spacing * 2) / 3
+
+          Repeater {
+            model: root.mode !== "menu" ? [] : [
+              { id: "partner", label: root.hasPet ? root.speciesName : "Partner", pokemon: root.hasPet ? root.pet.species : "", tint: "#e23b44" },
+              { id: "pokedex", label: "Pokédex", item: "poke-ball", tint: "#d0473f",
+                badge: Pet.ownedCount(root.view) + "/" + Pet.familyTotal() },
+              { id: "bag", label: "Bag", item: "sitrus-berry", tint: "#c8913a", badge: Pet.bagItems(root.view).length + "" },
+              { id: "shop", label: "Shop", item: "nugget", tint: "#d8b13a", badge: "₽" + Pet.money(root.view) },
+              { id: "daycare", label: "Day Care", pokemon: "chansey", tint: "#4f9a6a",
+                badge: (root.view.daycare || []).length + "/" + Pet.DAYCARE_SIZE },
+              { id: "training", label: "Training", image: "sprites/substitute.png", tint: "#8a6a4a",
+                badge: root.trainees.length + "/" + Pet.TRAIN_SLOTS },
+              { id: "expeditions", label: "Expeditions", item: "escape-rope", tint: "#4a86b8",
+                badge: Exp.active(root.view).length + "/" + Exp.slots(root.view), news: root.expeditionNews },
+              { id: "history", label: "Exp. history", glyph: "☰", tint: "#5a6aa8", badge: Exp.rank(root.view).name },
+              { id: "summary", label: "Summary", glyph: "◉", tint: "#9a5aa8" }
+            ]
+
+            delegate: Item {
+              id: app
+              required property var modelData
+              width: menuGrid.tile
+              height: menuGrid.tile * 0.86
+
+              Rectangle {
+                id: appIcon
+                anchors.horizontalCenter: parent.horizontalCenter
+                readonly property real side: Math.min(app.width - Style.space(16), app.height - Style.space(24))
+                width: side
+                height: side
+                radius: width * 0.24
+                readonly property color tint: app.modelData.tint
+                color: appArea.pressed ? Qt.rgba(tint.r, tint.g, tint.b, 0.55)
+                     : appArea.containsMouse ? Qt.rgba(tint.r, tint.g, tint.b, 0.42) : Qt.rgba(tint.r, tint.g, tint.b, 0.28)
+                border.width: 1
+                border.color: Qt.rgba(tint.r, tint.g, tint.b, appArea.containsMouse ? 0.9 : 0.5)
+                scale: appArea.pressed ? 0.94 : 1
+                Behavior on scale { NumberAnimation { duration: 90 } }
+
+                PokeSprite {
+                  visible: !!app.modelData.pokemon
+                  anchors.centerIn: parent
+                  slug: app.modelData.pokemon || ""
+                  shiny: app.modelData.id === "partner" && root.hasPet && root.pet.shiny
+                  fitWidth: parent.width - Style.space(10)
+                  fitHeight: parent.height - Style.space(10)
+                  maxPixel: 2
+                }
+                ItemSprite {
+                  visible: !!app.modelData.item
+                  anchors.centerIn: parent
+                  item: app.modelData.item || ""
+                  scale_: 2
+                }
+                Image {
+                  visible: !!app.modelData.image
+                  anchors.centerIn: parent
+                  source: app.modelData.image ? Qt.resolvedUrl(app.modelData.image) : ""
+                  smooth: false
+                  width: implicitWidth * 1.3
+                  height: implicitHeight * 1.3
+                }
+                Text {
+                  visible: !!app.modelData.glyph
+                  anchors.centerIn: parent
+                  text: app.modelData.glyph || ""
+                  color: "white"
+                  font.pixelSize: parent.height * 0.42
+                }
+
+                // Small count in the corner, red dot for news
+                Rectangle {
+                  visible: !!app.modelData.badge
+                  anchors.right: parent.right
+                  anchors.bottom: parent.bottom
+                  anchors.margins: -Style.space(4)
+                  width: badgeText.implicitWidth + Style.space(8)
+                  height: Style.space(16)
+                  radius: height / 2
+                  color: Qt.rgba(0, 0, 0, 0.7)
+                  Text {
+                    id: badgeText
+                    anchors.centerIn: parent
+                    text: app.modelData.badge || ""
+                    color: "white"
+                    font.family: Style.font.family
+                    font.pixelSize: Style.space(9)
+                  }
+                }
+                Rectangle {
+                  visible: !!app.modelData.news
+                  anchors.right: parent.right
+                  anchors.top: parent.top
+                  anchors.margins: -Style.space(3)
+                  width: Style.space(12); height: width; radius: width / 2
+                  color: root.gold
+                }
+              }
+
+              Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: appIcon.bottom
+                anchors.topMargin: Style.space(5)
+                width: parent.width
+                horizontalAlignment: Text.AlignHCenter
+                elide: Text.ElideRight
+                text: app.modelData.label
+                color: Color.popups.text
+                font.family: Style.font.family
+                font.pixelSize: Style.space(11)
+              }
+
+              MouseArea {
+                id: appArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.openMenuItem(app.modelData.id)
+              }
+            }
+          }
+        }
+
+        Text {
+          visible: root.message !== ""
+          width: parent.width
+          wrapMode: Text.WordWrap
+          horizontalAlignment: Text.AlignHCenter
+          text: root.message
+          color: root.gold
+          font.family: Style.font.family
+          font.pixelSize: Style.space(11)
+        }
+      }
+
+      // ---- Shop ----
+      Column {
+        id: shop
+        visible: root.mode === "shop"
+        width: parent.width
+        spacing: Style.space(8)
+        readonly property var shelves: root.mode === "shop" ? Pet.shopStock(root.now) : []
+        readonly property bool selling: root.shopTab === "sell"
+        readonly property var items: !visible ? [] : selling ? Pet.sellable(root.view)
+                                   : shelves.length ? shelves[root.shopShelf].items : []
+        readonly property int unit: !root.shopItem ? 0 : selling ? Pet.sellPrice(root.shopItem) : Pet.price(root.shopItem)
+        readonly property int maxQty: !root.shopItem ? 1 : selling ? (root.view.bag[root.shopItem] || 0)
+                                    : Math.max(1, Math.floor(Pet.money(root.view) / Math.max(1, unit)))
+
+        Row {
+          width: parent.width
+          spacing: Style.space(8)
+          readonly property real half: (width - spacing) / 2
+          PetButton { width: parent.half; highlight: !shop.selling; label: "Buy"; onClicked: { root.shopTab = "buy"; root.shopItem = ""; root.message = "" } }
+          PetButton { width: parent.half; highlight: shop.selling; label: "Sell"; onClicked: { root.shopTab = "sell"; root.shopItem = ""; root.message = "" } }
+        }
+
+        Row {
+          visible: !shop.selling
+          spacing: Style.space(6)
+          Repeater {
+            model: shop.shelves
+            delegate: Rectangle {
+              required property var modelData
+              required property int index
+              readonly property bool selected: root.shopShelf === index
+              width: shelfLabel.implicitWidth + Style.space(16)
+              height: Style.space(24)
+              radius: height / 2
+              color: selected ? Qt.rgba(0.95, 0.72, 0.29, 0.2) : shelfArea.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
+              border.width: 1
+              border.color: selected ? root.gold : Qt.rgba(1, 1, 1, 0.15)
+              Text {
+                id: shelfLabel
+                anchors.centerIn: parent
+                text: modelData.name
+                color: parent.selected ? root.gold : Color.popups.text
+                font.family: Style.font.family
+                font.pixelSize: Style.space(11)
+              }
+              MouseArea { id: shelfArea; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                          onClicked: { root.shopShelf = index; root.shopItem = "" } }
+            }
+          }
+        }
+
+        Caption {
+          visible: shop.selling && shop.items.length === 0
+          width: parent.width
+          horizontalAlignment: Text.AlignHCenter
+          text: "Nothing to sell."
+        }
+
+        GridView {
+          id: shopGrid
+          width: parent.width
+          height: count === 0 ? 0 : Math.min(Style.space(250), Math.ceil(count / 5) * cellHeight)
+          clip: true
+          cellWidth: width / 5
+          cellHeight: Style.space(78)
+          boundsBehavior: Flickable.StopAtBounds
+          model: shop.items
+
+          delegate: Item {
+            required property string modelData
+            width: shopGrid.cellWidth
+            height: shopGrid.cellHeight
+            Rectangle {
+              anchors.fill: parent
+              anchors.margins: Style.space(3)
+              radius: Style.cornerRadius
+              color: shopArea.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(0.29, 0.53, 0.72, 0.08)
+              border.width: root.shopItem === modelData ? 1 : 0
+              border.color: root.gold
+              ItemSprite { anchors.horizontalCenter: parent.horizontalCenter; anchors.top: parent.top; anchors.topMargin: Style.space(3); item: modelData; scale_: 1.3 }
+              Text {
+                visible: (root.view.bag[modelData] || 0) > 0
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.margins: Style.space(3)
+                text: "×" + root.view.bag[modelData]
+                color: Color.popups.text
+                opacity: 0.6
+                font.family: Style.font.family
+                font.pixelSize: Style.space(8)
+              }
+              Column {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: Style.space(3)
+                Text {
+                  anchors.horizontalCenter: parent.horizontalCenter
+                  width: shopGrid.cellWidth - Style.space(8)
+                  horizontalAlignment: Text.AlignHCenter
+                  elide: Text.ElideRight
+                  text: Pet.itemName(modelData)
+                  color: Color.popups.text
+                  font.family: Style.font.family
+                  font.pixelSize: Style.space(9)
+                }
+                Text {
+                  anchors.horizontalCenter: parent.horizontalCenter
+                  text: "₽" + (shop.selling ? Pet.sellPrice(modelData) : Pet.price(modelData))
+                  color: shop.selling || Pet.money(root.view) >= Pet.price(modelData) ? root.gold : root.accent
+                  font.family: Style.font.family
+                  font.pixelSize: Style.space(10)
+                  font.bold: true
+                }
+              }
+              MouseArea { id: shopArea; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.pickShopItem(modelData) }
+            }
+          }
+        }
+
+        // The selected item, how many, and the deal
+        Rectangle {
+          visible: root.shopItem !== ""
+          width: parent.width
+          height: dealColumn.implicitHeight + Style.space(16)
+          radius: Style.cornerRadius
+          color: Qt.rgba(1, 1, 1, 0.04)
+          border.width: 1
+          border.color: Qt.rgba(1, 1, 1, 0.10)
+
+          Column {
+            id: dealColumn
+            anchors.fill: parent
+            anchors.margins: Style.space(8)
+            spacing: Style.space(6)
+            Row {
+              spacing: Style.space(8)
+              ItemSprite { item: root.shopItem; scale_: 1 }
+              Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.shopItem ? Pet.itemName(root.shopItem) + "   (in bag: " + (root.view.bag[root.shopItem] || 0) + ")" : ""
+                color: Color.popups.text
+                font.family: Style.font.family
+                font.pixelSize: Style.space(12)
+                font.bold: true
+              }
+            }
+            Caption { width: parent.width; wrapMode: Text.WordWrap; text: root.shopItem ? Pet.itemText(root.shopItem) : "" }
+            Row {
+              spacing: Style.space(6)
+              PetButton { width: Style.space(30); label: "−"; onClicked: root.shopQty = Math.max(1, root.shopQty - 1) }
+              Text {
+                anchors.verticalCenter: parent.verticalCenter
+                width: Style.space(34)
+                horizontalAlignment: Text.AlignHCenter
+                text: "×" + root.shopQty
+                color: Color.popups.text
+                font.family: Style.font.family
+                font.pixelSize: Style.space(13)
+                font.bold: true
+              }
+              PetButton { width: Style.space(30); label: "+"; onClicked: root.shopQty = Math.min(Math.max(1, shop.maxQty), root.shopQty + 1) }
+              PetButton { width: Style.space(40); label: "×10"; onClicked: root.shopQty = Math.min(Math.max(1, shop.maxQty), root.shopQty + 10) }
+              PetButton {
+                width: dealColumn.width - Style.space(30 + 34 + 30 + 40 + 24)
+                highlight: true
+                enabledLook: shop.selling || Pet.money(root.view) >= shop.unit * root.shopQty
+                label: (shop.selling ? "Sell for ₽" : "Buy for ₽") + shop.unit * root.shopQty
+                onClicked: root.shopDeal()
+              }
+            }
+          }
+        }
+
+        Text {
+          visible: root.message !== ""
+          width: parent.width
+          wrapMode: Text.WordWrap
+          horizontalAlignment: Text.AlignHCenter
+          text: root.message
+          color: root.gold
+          font.family: Style.font.family
+          font.pixelSize: Style.space(11)
+        }
+
+        Caption {
+          width: parent.width
+          horizontalAlignment: Text.AlignHCenter
+          wrapMode: Text.WordWrap
+          text: shop.selling ? "The shop buys items back at half price."
+              : "Earn Poké Dollars on expeditions. Mints and rare evolution items change every day."
+        }
+
+        PetButton { width: parent.width; label: "Back"; onClicked: root.home() }
       }
 
       // ---- Pokédex ----
@@ -986,7 +1473,7 @@ BarWidget {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
           wrapMode: Text.WordWrap
-          text: "⌂ plays at the Day Care, the others rest in the box. Click one to see its summary."
+          text: "⌂ is the family's lead: it can be your partner, play at the Day Care or go on expeditions. The others rest in the box. Click one to see its summary."
         }
 
         // Nav-Dex: lock wild encounters on one species of this family
@@ -1180,7 +1667,9 @@ BarWidget {
             Caption { text: summary.p ? "Lv. " + Pet.level(summary.p) + "  ·  " + Pet.natureName(summary.p.nature) + " nature" : "" }
             Caption {
               text: root.infoBoxed ? "In the box"
-                  : root.infoRef === root.view.current ? "★ Your partner" : "⌂ At the Day Care"
+                  : root.infoRef === root.view.current ? "★ Your partner"
+                  : Pet.isAway(root.view, root.infoRef) ? "⛰ On an expedition"
+                  : Pet.inDaycare(root.view, root.infoRef) ? "⌂ At the Day Care (+" + Pet.DAYCARE_XP + " XP/h)" : "Resting (no XP)"
             }
             Text {
               width: parent.width
@@ -1312,6 +1801,17 @@ BarWidget {
           ].filter(function(x) { return x }).join("   ·   ")
         }
 
+        Text {
+          visible: root.message !== ""
+          width: parent.width
+          wrapMode: Text.WordWrap
+          horizontalAlignment: Text.AlignHCenter
+          text: root.message
+          color: root.gold
+          font.family: Style.font.family
+          font.pixelSize: Style.space(11)
+        }
+
         Row {
           id: summaryTools
           width: parent.width
@@ -1345,7 +1845,7 @@ BarWidget {
           width: parent.width
           spacing: Style.space(8)
           readonly property bool partner: root.infoRef === root.view.current
-          readonly property int count: root.infoBoxed ? 3 : partner ? 1 : 2
+          readonly property int count: root.infoBoxed ? 3 : partner ? 1 : 3
           readonly property real cell: (width - spacing * (count - 1)) / count
 
           PetButton {
@@ -1361,10 +1861,17 @@ BarWidget {
             onClicked: root.makePartner(root.infoRef)
           }
           PetButton {
+            visible: !root.infoBoxed && !summaryButtons.partner
+            width: summaryButtons.cell
+            readonly property bool inside: Pet.inDaycare(root.view, root.infoRef)
+            label: inside ? "Leave Day Care" : "⌂ Day Care"
+            onClicked: root.toggleDaycare(root.infoRef)
+          }
+          PetButton {
             visible: root.infoBoxed
             width: summaryButtons.cell
             highlight: true
-            label: "⌂ To Day Care"
+            label: "Make it lead"
             onClicked: root.sendToDayCare(root.infoRef)
           }
           PetButton {
@@ -1381,7 +1888,7 @@ BarWidget {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
           wrapMode: Text.WordWrap
-          text: "Boxed Pokémon rest: no XP or training. Send it to the Day Care to swap it with "
+          text: "Boxed Pokémon rest: no XP or training. Make it the lead to swap it with "
                 + (Pet.specimen(root.view, Pet.refRoot(root.infoRef)) ? Pet.name(Pet.specimen(root.view, Pet.refRoot(root.infoRef)).species) : "the one there")
                 + (Pet.refRoot(root.infoRef) === root.view.current ? ", your partner." : ".")
         }
@@ -1514,25 +2021,12 @@ BarWidget {
         Rectangle {
           id: field
           width: parent.width
-          height: Style.space(300)
+          height: Style.space(230)
           radius: Style.cornerRadius
           clip: true
           gradient: Gradient {
             GradientStop { position: 0.0; color: "#1d3a2a" }
             GradientStop { position: 1.0; color: "#2c5a36" }
-          }
-
-          // Scroll (wheel or touchpad, either axis) to switch boxes
-          WheelHandler {
-            property real acc: 0
-            onWheel: function(event) {
-              var d = event.angleDelta.x !== 0 ? -event.angleDelta.x : -event.angleDelta.y
-              acc += d
-              if (Math.abs(acc) < 120) return
-              var step = acc > 0 ? 1 : -1
-              acc = 0
-              root.daycarePage = Math.max(0, Math.min(root.daycarePages - 1, root.daycarePage + step))
-            }
           }
 
           // A few tufts of grass
@@ -1549,8 +2043,7 @@ BarWidget {
           }
 
           Repeater {
-            model: root.mode === "daycare"
-                   ? root.ownedRoots.slice(root.daycarePage * root.daycareSize, (root.daycarePage + 1) * root.daycareSize) : []
+            model: root.mode === "daycare" ? root.daycareWalkers : []
 
             delegate: Item {
               id: walker
@@ -1685,44 +2178,93 @@ BarWidget {
           }
         }
 
-        Row {
-          anchors.horizontalCenter: parent.horizontalCenter
-          spacing: Style.space(10)
-
-          PetButton {
-            width: Style.space(36)
-            label: "‹"
-            enabledLook: root.daycarePage > 0
-            onClicked: root.daycarePage = Math.max(0, root.daycarePage - 1)
-          }
-
-          Row {
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: Style.space(6)
-            Repeater {
-              model: root.daycarePages
-              delegate: Rectangle {
-                required property int index
-                width: Style.space(8); height: width; radius: width / 2
-                color: index === root.daycarePage ? root.accent : Qt.rgba(1, 1, 1, 0.2)
-                MouseArea { anchors.fill: parent; anchors.margins: -4; onClicked: root.daycarePage = index }
-              }
-            }
-          }
-
-          PetButton {
-            width: Style.space(36)
-            label: "›"
-            enabledLook: root.daycarePage < root.daycarePages - 1
-            onClicked: root.daycarePage = Math.min(root.daycarePages - 1, root.daycarePage + 1)
-          }
-        }
-
         Caption {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
           wrapMode: Text.WordWrap
-          text: "10 Pokémon per box · scroll to switch boxes. They play here while you look after your partner (★) and slowly gain XP. Click one to see its summary."
+          text: "Up to " + Pet.DAYCARE_SIZE + " Pokémon play here and earn " + Pet.DAYCARE_XP + " XP per hour each; the others rest without XP. "
+                + "Click a Pokémon below to send it or take it back."
+        }
+
+        // Everyone you can send (your partner earns XP with you)
+        GridView {
+          id: careGrid
+          width: parent.width
+          height: Style.space(196)
+          clip: true
+          cellWidth: width / 8
+          cellHeight: Style.space(66)
+          boundsBehavior: Flickable.StopAtBounds
+          model: root.mode === "daycare" ? root.ownedRoots.filter(function(r) { return r !== root.view.current })
+                                                .sort(function(a, b) { return Pet.inDaycare(root.view, b) - Pet.inDaycare(root.view, a) }) : []
+
+          delegate: Item {
+            id: careTile
+            required property string modelData
+            readonly property var saved: root.view.pets[modelData]
+            readonly property bool inside: Pet.inDaycare(root.view, modelData)
+            readonly property bool away: Pet.isAway(root.view, modelData)
+            width: careGrid.cellWidth
+            height: careGrid.cellHeight
+
+            Rectangle {
+              anchors.fill: parent
+              anchors.margins: Style.space(2)
+              radius: Style.cornerRadius
+              color: careArea.containsMouse ? Qt.rgba(1, 1, 1, 0.08)
+                   : careTile.inside ? Qt.rgba(0.50, 0.75, 0.60, 0.16) : Qt.rgba(0.29, 0.53, 0.72, 0.06)
+              border.width: careTile.inside ? 1 : 0
+              border.color: root.good
+              opacity: careTile.inside ? 1 : 0.6
+
+              PokeSprite {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                anchors.topMargin: Style.space(3)
+                slug: careTile.saved ? careTile.saved.species : ""
+                shiny: !!careTile.saved && careTile.saved.shiny
+                fitWidth: parent.width - 6
+                fitHeight: Style.space(38)
+                maxPixel: 2
+              }
+              Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: Style.space(2)
+                text: careTile.away ? "⛰ away" : careTile.saved ? "Lv." + Pet.level(careTile.saved) : ""
+                color: Color.popups.text
+                font.family: Style.font.family
+                font.pixelSize: Style.space(9)
+              }
+              Text {
+                visible: careTile.inside
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: Style.space(3)
+                text: "⌂"
+                color: root.good
+                font.pixelSize: Style.space(10)
+              }
+              MouseArea {
+                id: careArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.toggleDaycare(careTile.modelData)
+              }
+            }
+          }
+        }
+
+        Text {
+          visible: root.message !== ""
+          width: parent.width
+          wrapMode: Text.WordWrap
+          horizontalAlignment: Text.AlignHCenter
+          text: root.message
+          color: root.gold
+          font.family: Style.font.family
+          font.pixelSize: Style.space(11)
         }
 
         PetButton { width: parent.width; label: "Back"; onClicked: root.home() }
@@ -1921,6 +2463,332 @@ BarWidget {
         }
       }
 
+      // ---- Following an expedition ----
+      Column {
+        id: expFollow
+        visible: root.mode === "expedition"
+        width: parent.width
+        spacing: Style.space(8)
+        readonly property var exp: root.followed
+        readonly property var prog: exp ? Exp.progress(exp, root.expClock) : ({ floor: 1, frac: 0, left: 0 })
+        readonly property var members: exp ? Exp.teamState(exp) : []
+        readonly property bool done: !!exp && exp.status === "done"
+        readonly property var report: done ? exp.report : null
+
+        Rectangle {
+          width: parent.width
+          height: Style.space(150)
+          radius: Style.cornerRadius
+          clip: true
+          color: Qt.rgba(0.29, 0.53, 0.72, 0.10)
+
+          CorridorScene {
+            anchors.fill: parent
+            visible: !!expFollow.exp
+            team: expFollow.members
+            colors: expFollow.exp ? Exp.BIOMES[expFollow.exp.biome].colors : ["#222", "#444", "#888"]
+            floor: Math.max(1, expFollow.prog.floor)
+            frac: expFollow.prog.frac
+            floorMs: expFollow.exp ? expFollow.exp.floorMs : 360000
+            marks: expFollow.exp && expFollow.exp.status === "running" ? Exp.marks(expFollow.exp, Math.max(1, expFollow.prog.floor)) : []
+            status: expFollow.exp ? expFollow.exp.status : "done"
+            homeward: expFollow.exp && expFollow.exp.status === "returning" ? root.expClock - (expFollow.exp.recalledAt || root.expClock) : 0
+            weather: expFollow.exp && expFollow.exp.status === "running" ? expFollow.exp.weather || "" : ""
+            active: root.opened && root.mode === "expedition"
+          }
+
+          // Floor and time
+          Rectangle {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.margins: Style.space(8)
+            width: floorChip.implicitWidth + Style.space(14)
+            height: Style.space(22)
+            radius: height / 2
+            color: Qt.rgba(0, 0, 0, 0.5)
+            Text {
+              id: floorChip
+              anchors.centerIn: parent
+              text: !expFollow.exp ? "" : expFollow.done ? Exp.OUTCOMES[expFollow.report.outcome]
+                  : expFollow.exp.status === "returning" ? "Heading home"
+                  : "B" + expFollow.prog.floor + "F"
+              color: "white"
+              font.family: Style.font.family
+              font.pixelSize: Style.space(11)
+              font.bold: true
+            }
+          }
+          Rectangle {
+            visible: !!expFollow.exp && !expFollow.done
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: Style.space(8)
+            width: timeChip.implicitWidth + Style.space(14)
+            height: Style.space(22)
+            radius: height / 2
+            color: Qt.rgba(0, 0, 0, 0.5)
+            Text {
+              id: timeChip
+              anchors.centerIn: parent
+              text: !expFollow.exp ? "" : (expFollow.exp.status === "running" ? Exp.WEATHER_ICONS[expFollow.exp.weather || ""] + "  " : "")
+                    + Exp.timeText(expFollow.prog.left) + (expFollow.exp.status === "returning" ? "" : " left")
+              color: "white"
+              font.family: Style.font.family
+              font.pixelSize: Style.space(11)
+            }
+          }
+        }
+
+        Caption {
+          visible: !expFollow.exp
+          width: parent.width
+          horizontalAlignment: Text.AlignHCenter
+          text: "This expedition is over."
+        }
+
+        // The team
+        Repeater {
+          model: expFollow.members
+          delegate: Item {
+            id: expMember
+            required property var modelData
+            readonly property bool down: modelData.hp <= 0
+            width: expFollow.width
+            height: Style.space(30)
+            opacity: down ? 0.5 : 1
+
+            PokeSprite {
+              id: expMemberSprite
+              anchors.left: parent.left
+              anchors.verticalCenter: parent.verticalCenter
+              slug: expMember.modelData.species
+              shiny: expMember.modelData.shiny
+              fitWidth: Style.space(32)
+              fitHeight: Style.space(28)
+            }
+            Text {
+              id: expMemberName
+              anchors.left: expMemberSprite.right
+              anchors.leftMargin: Style.space(6)
+              anchors.verticalCenter: parent.verticalCenter
+              width: Style.space(110)
+              elide: Text.ElideRight
+              text: expMember.modelData.name + " " + expMember.modelData.level
+                    + (expMember.down ? " · KO" : expMember.modelData.status ? " · " + expMember.modelData.status.toUpperCase() : "")
+              color: expMember.down || expMember.modelData.status ? root.accent : Color.popups.text
+              font.family: Style.font.family
+              font.pixelSize: Style.space(11)
+              font.bold: true
+            }
+            Column {
+              anchors.left: expMemberName.right
+              anchors.leftMargin: Style.space(6)
+              anchors.right: parent.right
+              anchors.verticalCenter: parent.verticalCenter
+              spacing: Style.space(3)
+              Repeater {
+                model: [
+                  { ratio: expMember.modelData.hp / expMember.modelData.maxhp, hp: true, color: root.good },
+                  { ratio: expMember.modelData.ppMax ? expMember.modelData.pp / expMember.modelData.ppMax : 0, color: root.steel },
+                  { ratio: expMember.modelData.satiety / 100, color: root.gold }
+                ]
+                delegate: Rectangle {
+                  required property var modelData
+                  width: parent.width
+                  height: Style.space(4)
+                  radius: height / 2
+                  color: Qt.rgba(1, 1, 1, 0.08)
+                  Rectangle {
+                    width: parent.width * Math.max(0, Math.min(1, modelData.ratio))
+                    height: parent.height
+                    radius: parent.radius
+                    color: modelData.hp && modelData.ratio <= 0.2 ? root.accent : modelData.hp && modelData.ratio <= 0.5 ? root.gold : modelData.color
+                  }
+                }
+              }
+            }
+          }
+        }
+        Caption {
+          visible: !!expFollow.exp && !expFollow.done
+          width: parent.width
+          font.pixelSize: Style.space(9)
+          text: "Bars: HP · PP · fullness   ·   Bag: " + (expFollow.exp ? Exp.provisionCount(expFollow.exp.prov) : 0)
+                + " provisions left   ·   Found: " + (expFollow.exp ? Exp.provisionCount(expFollow.exp.loot) : 0) + " items"
+        }
+
+        // Report
+        Column {
+          visible: expFollow.done
+          width: parent.width
+          spacing: Style.space(4)
+
+          Text {
+            text: !expFollow.report ? ""
+                : { cleared: "★ Expedition cleared!", escaped: "Escaped safely", recalled: "Back home", failed: "The team was defeated…" }[expFollow.report.outcome]
+                  + "   +" + expFollow.report.points + " rank pts   +₽" + (expFollow.report.money || 0)
+            color: expFollow.report && expFollow.report.outcome === "failed" ? root.accent : root.gold
+            font.family: Style.font.family
+            font.pixelSize: Style.space(13)
+            font.bold: true
+          }
+          Repeater {
+            model: expFollow.report ? expFollow.report.members : []
+            delegate: Caption {
+              required property var modelData
+              width: expFollow.width
+              opacity: 0.9
+              wrapMode: Text.WordWrap
+              text: Pet.name(modelData.species) + "  Lv. " + modelData.from + (modelData.to > modelData.from ? " → " + modelData.to : "")
+                    + "  ·  +" + modelData.xp + " XP"
+                    + (modelData.evs.some(function(v) { return v > 0 })
+                       ? "  ·  EVs " + modelData.evs.map(function(v, i) { return v > 0 ? "+" + v + " " + ["HP", "Atk", "Def", "SpA", "SpD", "Spe"][i] : "" }).filter(String).join(", ")
+                       : "")
+            }
+          }
+          Flow {
+            width: parent.width
+            spacing: Style.space(4)
+            Repeater {
+              model: expFollow.report ? expFollow.report.recruits : []
+              delegate: Row {
+                required property var modelData
+                spacing: Style.space(2)
+                PokeSprite { slug: modelData.species; shiny: modelData.shiny; fitWidth: Style.space(30); fitHeight: Style.space(26) }
+                Caption {
+                  anchors.verticalCenter: parent.verticalCenter
+                  text: (modelData.legend ? "✦ " : "★ ") + Pet.name(modelData.species) + (modelData.ref ? " joined!" : " (box full)")
+                  color: modelData.ref ? root.gold : root.accent
+                  opacity: 1
+                }
+              }
+            }
+          }
+          Flow {
+            width: parent.width
+            spacing: Style.space(2)
+            Repeater {
+              model: expFollow.done ? Object.keys(expFollow.exp.loot) : []
+              delegate: Item {
+                required property string modelData
+                width: Style.space(32); height: Style.space(30)
+                ItemSprite { anchors.centerIn: parent; item: modelData; scale_: 1 }
+                Text {
+                  anchors.right: parent.right; anchors.bottom: parent.bottom
+                  text: "×" + expFollow.exp.loot[modelData]
+                  color: Color.popups.text; font.pixelSize: Style.space(9); font.bold: true; font.family: Style.font.family
+                }
+              }
+            }
+          }
+        }
+
+        // Log, newest first (click a fight to see it turn by turn)
+        Rectangle {
+          visible: !!expFollow.exp
+          width: parent.width
+          height: Style.space(expFollow.done ? 130 : 180)
+          radius: Style.cornerRadius
+          color: Qt.rgba(1, 1, 1, 0.03)
+          border.width: 1
+          border.color: Qt.rgba(1, 1, 1, 0.08)
+
+          ListView {
+            id: expLog
+            anchors.fill: parent
+            anchors.margins: Style.space(6)
+            clip: true
+            spacing: Style.space(3)
+            boundsBehavior: Flickable.StopAtBounds
+            model: expFollow.exp ? expFollow.exp.log.slice().reverse() : []
+            readonly property var icons: ({ battle: "⚔", boss: "☠", legend: "✦", item: "◆", trap: "⚠", event: "✧",
+                                            weather: "☁", team: "♥", danger: "✖", info: "·", recruit: "★", care: "✚" })
+            readonly property var tints: ({ boss: root.accent, legend: root.gold, item: root.good, trap: "#e8903a", danger: root.accent,
+                                            recruit: root.gold, team: "#d685ad", care: root.good, battle: root.steel })
+
+            delegate: Column {
+              id: logEntry
+              required property var modelData
+              readonly property bool open: root.expOpenEntry === modelData
+              width: expLog.width
+
+              Item {
+                width: parent.width
+                height: logText.implicitHeight
+                Text {
+                  id: logFloor
+                  width: Style.space(30)
+                  text: logEntry.modelData.f > 0 ? "B" + logEntry.modelData.f + "F" : ""
+                  color: Color.popups.text
+                  opacity: 0.5
+                  font.family: Style.font.family
+                  font.pixelSize: Style.space(9)
+                }
+                Text {
+                  id: logIcon
+                  anchors.left: logFloor.right
+                  width: Style.space(14)
+                  text: expLog.icons[logEntry.modelData.k] || "·"
+                  color: expLog.tints[logEntry.modelData.k] || Color.popups.text
+                  font.pixelSize: Style.space(11)
+                }
+                Text {
+                  id: logText
+                  anchors.left: logIcon.right
+                  anchors.right: parent.right
+                  wrapMode: Text.WordWrap
+                  text: logEntry.modelData.s + (logEntry.modelData.d ? (logEntry.open ? "  ▴" : "  ▸") : "")
+                  color: logEntry.modelData.k === "danger" ? root.accent : Color.popups.text
+                  font.family: Style.font.family
+                  font.pixelSize: Style.space(10)
+                  MouseArea {
+                    anchors.fill: parent
+                    enabled: !!logEntry.modelData.d
+                    cursorShape: logEntry.modelData.d ? Qt.PointingHandCursor : Qt.ArrowCursor
+                    onClicked: root.expOpenEntry = logEntry.open ? null : logEntry.modelData
+                  }
+                }
+              }
+              Repeater {
+                model: logEntry.open ? logEntry.modelData.d : []
+                delegate: Caption {
+                  required property string modelData
+                  x: Style.space(44)
+                  width: expLog.width - x
+                  wrapMode: Text.WordWrap
+                  text: modelData
+                  font.pixelSize: Style.space(9)
+                }
+              }
+            }
+          }
+        }
+
+        Row {
+          id: expButtons
+          width: parent.width
+          spacing: Style.space(8)
+          readonly property bool second: !!expFollow.exp && expFollow.exp.status !== "returning"
+          readonly property real cell: second ? (width - spacing) / 2 : width
+
+          PetButton { width: expButtons.cell; label: "Back"; onClicked: root.home() }
+          PetButton {
+            visible: !!expFollow.exp && expFollow.exp.status === "running"
+            width: expButtons.cell
+            danger: true
+            label: "Call the team back"
+            onClicked: root.recallExpedition()
+          }
+          PetButton {
+            visible: expFollow.done
+            width: expButtons.cell
+            highlight: true
+            label: "Close the report"
+            onClicked: root.closeReport()
+          }
+        }
+      }
+
       // ---- Bag ----
       Column {
         visible: root.mode === "bag"
@@ -1932,7 +2800,7 @@ BarWidget {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
           wrapMode: Text.WordWrap
-          text: "Your bag is empty. Search around to find berries, candies, mints, bottle caps, incense and evolution items!"
+          text: "Your bag is empty. Search around to find Poké Balls, berries, candies, mints, bottle caps, incense, expedition provisions and evolution items!"
         }
 
         GridView {
@@ -2063,7 +2931,8 @@ BarWidget {
 
             PetButton {
               readonly property bool incense: itemPanel.kind === "incense"
-              visible: itemPanel.shown && itemPanel.kind !== "evolution" && root.selectedItem !== "bottle-cap"
+              visible: itemPanel.shown && ["evolution", "ball"].indexOf(itemPanel.kind) < 0 && !Pet.isProvision(root.selectedItem)
+                       && root.selectedItem !== "bottle-cap"
               width: parent.width
               highlight: true
               enabledLook: root.hasPet || incense
@@ -2089,8 +2958,8 @@ BarWidget {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
           wrapMode: Text.WordWrap
-          text: (root.searchesLeft > 0 ? root.searchesLeft + " / " + Pet.SEARCHES_PER_WINDOW + " item searches left, refilled in " + root.refillMinutes + " min."
-              : "Next item searches in " + root.refillMinutes + " min.")
+          text: (root.searchesLeft > 0 ? "Your search of this half-hour is ready."
+              : "Next search in " + root.refillMinutes + " min.")
               + (root.incenseLeft ? "  ·  Incense: " + root.incenseLeft : "")
         }
 
@@ -2100,7 +2969,7 @@ BarWidget {
       // ---- Scene ----
       Rectangle {
         id: scene
-        visible: ["picker", "box", "bag", "info", "moves", "relearn", "daycare", "train"].indexOf(root.mode) < 0
+        visible: ["picker", "box", "bag", "info", "moves", "relearn", "daycare", "train", "expedition", "menu", "shop"].indexOf(root.mode) < 0
         width: parent.width
         height: Style.space(170)
         radius: Style.cornerRadius
@@ -2154,6 +3023,7 @@ BarWidget {
         PokeSprite {
           id: bigSprite
           visible: root.hasPet && root.mode !== "encounter" && root.mode !== "found"
+          opacity: root.partnerAway && root.mode === "pet" ? 0.45 : 1
           property real lunge: 0
           slug: root.mode === "evolve" && root.evolvePet ? root.evolvePet.species : root.hasPet ? root.pet.species : ""
           shiny: root.mode === "evolve" && root.evolvePet ? root.evolvePet.shiny : root.hasPet && root.pet.shiny
@@ -2184,13 +3054,78 @@ BarWidget {
           ]
         }
 
-        // Empty Poké Ball when you have nobody yet, or the item you just found
+        // Empty Poké Ball when you have nobody yet
         ItemSprite {
-          visible: (!root.hasPet && root.mode !== "encounter") || root.mode === "found"
+          visible: !root.hasPet && root.mode !== "encounter" && root.mode !== "found"
           anchors.centerIn: parent
-          item: root.mode === "found" ? root.foundItem : "poke-ball"
+          item: "poke-ball"
           scale_: 3
-          opacity: root.mode === "found" ? 1 : 0.35
+          opacity: 0.35
+        }
+
+        // Everything the search turned up
+        Flow {
+          visible: root.mode === "found"
+          anchors.centerIn: parent
+          width: Math.min(parent.width - Style.space(16), root.foundItems.length * Style.space(68))
+          spacing: Style.space(4)
+
+          Repeater {
+            model: root.mode === "found" ? root.foundItems : []
+            delegate: Column {
+              required property var modelData
+              width: Style.space(64)
+              spacing: Style.space(2)
+
+              Item {
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: foundSprite.width
+                height: foundSprite.height
+                ItemSprite { id: foundSprite; item: modelData.id; scale_: 1.5 }
+                Text {
+                  visible: modelData.count > 1
+                  anchors.right: parent.right
+                  anchors.bottom: parent.bottom
+                  text: "×" + modelData.count
+                  color: root.gold
+                  font.family: Style.font.family
+                  font.pixelSize: Style.space(10)
+                  font.bold: true
+                }
+              }
+              Text {
+                width: parent.width
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                maximumLineCount: 2
+                elide: Text.ElideRight
+                text: Pet.itemName(modelData.id)
+                color: Color.popups.text
+                font.family: Style.font.family
+                font.pixelSize: Style.space(9)
+              }
+            }
+          }
+        }
+
+        // Your partner is out exploring
+        Rectangle {
+          visible: root.partnerAway && root.mode === "pet"
+          anchors.left: parent.left
+          anchors.bottom: parent.bottom
+          anchors.margins: Style.space(8)
+          width: awayLabel.implicitWidth + Style.space(14)
+          height: Style.space(22)
+          radius: height / 2
+          color: Qt.rgba(0, 0, 0, 0.45)
+          Text {
+            id: awayLabel
+            anchors.centerIn: parent
+            text: "⛰ On an expedition"
+            color: root.gold
+            font.family: Style.font.family
+            font.pixelSize: Style.space(11)
+          }
         }
 
         // Wild Pokémon
@@ -2271,7 +3206,7 @@ BarWidget {
           visible: false
           anchors.centerIn: parent
           anchors.verticalCenterOffset: Style.space(20)
-          item: "poke-ball"
+          item: root.ballItem
           scale_: 2
           transformOrigin: Item.Bottom
         }
@@ -2382,7 +3317,7 @@ BarWidget {
       }
 
       Text {
-        visible: ["picker", "box", "bag", "info", "moves", "relearn", "daycare", "train"].indexOf(root.mode) < 0
+        visible: ["picker", "box", "bag", "info", "moves", "relearn", "daycare", "train", "expedition", "menu", "shop"].indexOf(root.mode) < 0
         width: parent.width
         text: root.mode === "confirm"
           ? "Release " + root.speciesName + " and start over with a new " + Pet.name(root.view.current) + "?"
@@ -2449,9 +3384,9 @@ BarWidget {
         spacing: Style.space(8)
         readonly property real third: (width - spacing * 2) / 3
 
-        PetButton { width: actions.third; label: "Feed"; onClicked: root.doAction("feed") }
-        PetButton { width: actions.third; label: "Pet"; onClicked: root.doAction("pet") }
-        PetButton { width: actions.third; label: "Play"; onClicked: root.doAction("play") }
+        PetButton { width: actions.third; enabledLook: !root.partnerAway; label: "Feed"; onClicked: root.doAction("feed") }
+        PetButton { width: actions.third; enabledLook: !root.partnerAway; label: "Pet"; onClicked: root.doAction("pet") }
+        PetButton { width: actions.third; enabledLook: !root.partnerAway; label: "Play"; onClicked: root.doAction("play") }
       }
 
       // ---- Explore ----
@@ -2474,10 +3409,77 @@ BarWidget {
         PetButton {
           width: explore.third
           enabledLook: root.searchesLeft > 0
-          label: root.searchesLeft > 0 ? "Search " + root.searchesLeft + "/" + Pet.SEARCHES_PER_WINDOW : "Search " + root.refillMinutes + "m"
+          highlight: root.searchesLeft > 0
+          label: root.searchesLeft > 0 ? "Search ●" : "Search " + root.refillMinutes + "m"
           onClicked: root.search()
         }
         PetButton { width: explore.third; label: "Bag"; onClicked: { root.message = ""; root.mode = "bag" } }
+      }
+
+      PetButton {
+        visible: root.mode === "pet" && Pet.ownedCount(root.view) > 0
+        width: parent.width
+        highlight: root.expeditionNews
+        label: "⛰ Plan an expedition"
+        onClicked: root.openExpeditions()
+      }
+
+      // Teams out exploring (click to follow them)
+      Repeater {
+        model: root.mode === "pet" ? root.expeditions : []
+        delegate: Rectangle {
+          id: expLine
+          required property var modelData
+          readonly property var prog: Exp.progress(modelData, root.now)
+          readonly property bool done: modelData.status === "done"
+          width: content.width
+          height: Style.space(30)
+          radius: Style.cornerRadius
+          color: expLineArea.containsMouse ? Qt.rgba(0.95, 0.72, 0.29, 0.14) : Qt.rgba(1, 1, 1, 0.04)
+          border.width: 1
+          border.color: done && !modelData.seen ? root.gold : Qt.rgba(1, 1, 1, 0.10)
+
+          Row {
+            id: expLineTeam
+            anchors.left: parent.left
+            anchors.leftMargin: Style.space(6)
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 0
+            Repeater {
+              model: expLine.modelData.team
+              delegate: PokeSprite {
+                required property var modelData
+                slug: modelData.species
+                shiny: modelData.shiny
+                fitWidth: Style.space(26)
+                fitHeight: Style.space(24)
+              }
+            }
+          }
+          Text {
+            anchors.left: expLineTeam.right
+            anchors.leftMargin: Style.space(6)
+            anchors.right: parent.right
+            anchors.rightMargin: Style.space(8)
+            anchors.verticalCenter: parent.verticalCenter
+            elide: Text.ElideRight
+            // Status first, so a long place name is what gets cut
+            text: (expLine.done ? (expLine.modelData.seen ? "" : "★ ") + Exp.OUTCOMES[expLine.modelData.report.outcome]
+                   : expLine.modelData.status === "returning" ? "Home in " + Exp.timeText(expLine.prog.left)
+                   : "B" + expLine.prog.floor + "F/" + expLine.modelData.floors + " · " + Exp.timeText(expLine.prog.left).replace(" min", "m"))
+                  + " · " + Exp.title(expLine.modelData)
+            color: expLine.done ? root.gold : Color.popups.text
+            font.family: Style.font.family
+            font.pixelSize: Style.space(11)
+          }
+          MouseArea {
+            id: expLineArea
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.followExpedition(expLine.modelData.id)
+          }
+        }
       }
 
       // Active Nav-Dex and Incense
@@ -2612,18 +3614,49 @@ BarWidget {
       }
 
       // ---- Safari encounter ----
-      Grid {
+      Column {
         id: safari
         visible: root.mode === "encounter" && !root.encounterOver
         width: parent.width
-        columns: 2
         spacing: Style.space(8)
-        readonly property real half: (width - spacing) / 2
+        readonly property real quarter: (width - Style.space(8) * 3) / 4
+        readonly property real third: (width - Style.space(8) * 2) / 3
 
-        PetButton { width: safari.half; highlight: true; label: "Poké Ball"; onClicked: root.throwBall() }
-        PetButton { width: safari.half; label: "Bait"; onClicked: root.throwBait() }
-        PetButton { width: safari.half; label: "Rock"; onClicked: root.throwRock() }
-        PetButton { width: safari.half; label: "Run"; onClicked: root.runAway() }
+        // One button per kind of ball, with how many you have
+        Row {
+          spacing: Style.space(8)
+          Repeater {
+            model: ["poke-ball", "great-ball", "ultra-ball", "master-ball"]
+            delegate: PetButton {
+              id: ballButton
+              required property string modelData
+              readonly property int count: root.view.bag[modelData] || 0
+              width: safari.quarter
+              highlight: count > 0 && modelData === "poke-ball"
+              enabledLook: count > 0
+              label: ""
+              onClicked: root.throwBall(modelData)
+              Row {
+                anchors.centerIn: parent
+                spacing: Style.space(2)
+                ItemSprite { anchors.verticalCenter: parent.verticalCenter; item: ballButton.modelData; scale_: 0.8 }
+                Text {
+                  anchors.verticalCenter: parent.verticalCenter
+                  text: "×" + ballButton.count
+                  color: Color.popups.text
+                  font.family: Style.font.family
+                  font.pixelSize: Style.space(11)
+                }
+              }
+            }
+          }
+        }
+        Row {
+          spacing: Style.space(8)
+          PetButton { width: safari.third; label: "Bait"; onClicked: root.throwBait() }
+          PetButton { width: safari.third; label: "Rock"; onClicked: root.throwRock() }
+          PetButton { width: safari.third; label: "Run"; onClicked: root.runAway() }
+        }
       }
 
       Row {

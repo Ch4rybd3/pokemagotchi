@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "id": "ch4rybd3.pokemagotchi",
   "name": "Pokemagotchi",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "author": "Ch4rybd3",
-  "description": "A tiny Pokémon tamagotchi for your bar: raise, catch, box, train and evolve all 905 Pokémon, hunt shinies with the Nav-Dex and teach them moves",
+  "description": "A tiny Pokémon tamagotchi for your bar: raise, catch, box, train and evolve all 905 Pokémon, and send teams on Mystery Dungeon-style expeditions",
   "kinds": [
     "bar-widget"
   ],

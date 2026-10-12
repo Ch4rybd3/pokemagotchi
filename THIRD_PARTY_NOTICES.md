@@ -35,9 +35,16 @@ Those sprites are based on PokéSprite (<https://github.com/msikma/pokesprite>, 
 
 ## PokeAPI
 
-`Dex.js`, `Info.js`, `Items.js` (names) and `Moves.js` are generated from
+`Dex.js`, `Info.js`, `Items.js` (names), `Moves.js` and `Battle.js` are generated from
 PokeAPI (<https://github.com/PokeAPI/pokeapi>, BSD 3-Clause License).
-Item sprites in `sprites/items` come from <https://github.com/PokeAPI/sprites>.
+Item sprites in `sprites/items` come from <https://github.com/PokeAPI/sprites>,
+except `apple.png` and `big-apple.png`, drawn for Pokemagotchi.
+
+## Pokémon Showdown
+
+The damage formula in `Combat.js` follows the order of operations and rounding of
+the Pokémon Showdown damage calculator (<https://github.com/smogon/damage-calc>,
+MIT License). No code is copied from it.
 
 ## Pokémon
 

@@ -3,12 +3,14 @@
 .import "Info.js" as Info
 .import "Items.js" as Items
 .import "Moves.js" as Moves
+.import "Battle.js" as Battle
 
 // Rates per hour. Tweak here to speed the game up or slow it down.
 var SATIETY_DECAY = 6
 var HAPPINESS_DECAY = 5
 var PASSIVE_XP = 36                 // earned per hour while fed and happy
 var DAYCARE_XP = 12                 // earned per hour by the Pokémon at the Day Care
+var DAYCARE_SIZE = 10               // Pokémon the Day Care looks after; the others rest
 var ACTION_XP = { feed: 12, pet: 9, play: 18 }
 var ACTION_COOLDOWN = 10 * 60000    // an action only grants XP once every 10 min
 var START_LEVEL = 5                 // level at 0 XP; wild catches below it start with negative XP
@@ -25,11 +27,36 @@ var DAY_END = 20
 // Exploring: per half-hour window (aligned on :00 and :30).
 var WINDOW = 30 * 60000
 var ENCOUNTERS_PER_WINDOW = 3
-var SEARCHES_PER_WINDOW = 5
+var SEARCHES_PER_WINDOW = 5         // items found by the one search of each half hour
 var SHINY_ODDS = 1 / 64
 var CHARM_SHINY_ODDS = 1 / 32       // with the Shiny Charm, earned by catching every family
 var HIDDEN_ABILITY_ODDS = 1 / 20
 var EVOLUTION_WEIGHT = 6            // share of searches that turn up an evolution item
+
+// Poké Balls found by every search, on top of the items.
+var BALLS_FOUND = [1, 5]
+var GREAT_BALL_ODDS = 0.3           // 1 or 2 Great Balls
+var ULTRA_BALL_ODDS = 0.08
+var MASTER_BALL_ODDS = 0.003
+var STARTER_BALLS = 10
+var APPLES_FOUND = [1, 3]           // apples in every search, each one rolled for its quality
+var APPLE_QUALITY = { "apple": 70, "big-apple": 25, "golden-apple": 5 }
+var STARTER_MONEY = 300             // Poké Dollars given once, to try the shop
+var SELL_RATE = 0.5                 // the shop buys items back at half price
+
+// Catching: the main-series formula, (a / 255)^0.75 per throw with
+// a = catch rate × Ball × HP factor. Safari Pokémon can't be weakened, so they
+// are treated as if they were at a third of their HP, with a Safari bonus.
+var SAFARI_HP_FACTOR = 7 / 9
+var SAFARI_BONUS = 1.5
+var MAX_CATCH = 0.95
+var LEGEND_FLEE = 0.6               // legendaries stick around a little longer
+
+// Wild encounter weights: catch rate, ×0.25 for evolved forms, and rarer still for these.
+var RARE_RATE = 45                  // catch rate at or under which a Pokémon counts as rare
+var RARE_WEIGHT = 0.6
+var LEGENDARY_WEIGHT = 0.12
+var MYTHICAL_WEIGHT = 0.05
 
 // EV training against the Substitute doll.
 var EV_MAX_TOTAL = 510
@@ -47,6 +74,7 @@ var MAX_MOVES = 4
 function name(slug) { return Dex.species[slug] ? Dex.species[slug][0] : slug }
 function evoLevel(slug) { return Dex.species[slug][2] }
 function captureRate(slug) { return Dex.species[slug][3] }
+function legendKind(slug) { return Battle.legendary[slug] || 0 }   // 0, 1 legendary, 2 mythical
 function condition(slug) { return Dex.species[slug][4] || {} }
 function itemName(id) { return Items.items[id] ? Items.items[id][0] : (Dex.items[id] || id) }
 function itemKind(id) { return Items.items[id] ? Items.items[id][1] : "evolution" }
@@ -121,9 +149,13 @@ function freshPet(species, now, shiny, xp, details) {
 }
 
 function freshSave() {
-  return { version: 4, current: "", pets: {}, bag: {}, explore: { window: 0, encounters: 0, searches: 0 }, encounter: null,
-           box: {}, seen: {}, navdex: "", incense: 0, charm: false }
+  return { version: 4, current: "", pets: {}, bag: { "poke-ball": STARTER_BALLS }, explore: { window: 0, encounters: 0, searches: 0 },
+           encounter: null, box: {}, seen: {}, navdex: "", incense: 0, charm: false, balls: true,
+           expeditions: [], expedition: freshRecord(), daycare: [], money: STARTER_MONEY }
 }
+
+// Rank points, legendary sightings per biome and past reports.
+function freshRecord() { return { points: 0, legends: {}, history: [], total: 0 } }
 
 // Fields added after v4 shipped; older v4 saves get them on load.
 function upgrade(v) {
@@ -135,6 +167,19 @@ function upgrade(v) {
   if (typeof v.navdex !== "string") v.navdex = ""
   if (!v.incense) v.incense = 0
   if (!v.charm) v.charm = ownedCount(v) >= familyTotal()
+  // Poké Balls became an item: everybody starts with a few.
+  if (!v.balls) {
+    v.bag["poke-ball"] = (v.bag["poke-ball"] || 0) + STARTER_BALLS
+    v.balls = true
+  }
+  if (!Array.isArray(v.expeditions)) v.expeditions = []
+  if (!v.expedition) v.expedition = freshRecord()
+  // The Day Care became a place for DAYCARE_SIZE Pokémon: keep the most advanced ones.
+  if (!Array.isArray(v.daycare)) {
+    v.daycare = Object.keys(v.pets).filter(function(r) { return r !== v.current })
+      .sort(function(a, b) { return v.pets[b].xp - v.pets[a].xp }).slice(0, DAYCARE_SIZE)
+  }
+  if (typeof v.money !== "number") v.money = STARTER_MONEY
   return v
 }
 
@@ -221,7 +266,7 @@ function storedTotal(save) {
 // Swaps a boxed Pokémon with the family's Day Care one (your partner, if it was).
 function makeLead(save, ref, now) {
   var i = refIndex(ref), root = refRoot(ref), box = boxOf(save, root)
-  if (i < 0 || !box[i] || !save.pets[root]) return false
+  if (i < 0 || !box[i] || !save.pets[root] || isAway(save, root)) return false
   if (save.pets[root].training) stopTraining(save, root)
   var p = box[i]
   p.last = now
@@ -238,6 +283,21 @@ function release(save, ref) {
   if (!box.length) delete save.box[root]
   return true
 }
+
+// ---- Expeditions ----
+// Expedition.js runs them; here we only need to know who is away.
+
+function expeditionActive(x) { return x.status === "running" || x.status === "returning" }
+
+function awayRoots(save) {
+  var out = {}
+  ;(save.expeditions || []).forEach(function(x) {
+    if (expeditionActive(x)) x.team.forEach(function(m) { out[m.ref] = true })
+  })
+  return out
+}
+
+function isAway(save, root) { return !!awayRoots(save)[root] }
 
 // ---- Seen Pokémon and the Nav-Dex ----
 
@@ -298,21 +358,27 @@ function boostedXp(p, rate, from, to) {
 
 function dropExpiredBoost(p, now) { if (p.boost && now >= p.boost.until) delete p.boost }
 
-// Your partner lives with you; the others play at the Day Care, where they
-// don't get hungry or bored and slowly earn XP. Anyone can be training EVs.
+// Your partner lives with you; up to DAYCARE_SIZE others play at the Day Care,
+// where they don't get hungry or bored and slowly earn XP. The rest just rest.
+// Anyone can be training against the Substitute doll.
 function tick(save, now) {
+  var away = awayRoots(save)
+  var care = {}
+  ;(save.daycare || []).forEach(function(r) { care[r] = true })
   for (var root in save.pets) {
     var q = save.pets[root]
     var from = q.last || now
+    // Pokémon on an expedition don't train, play or get hungry here.
+    if (away[root]) { q.last = now; dropExpiredBoost(q, now); continue }
     train(q, from, now)
     if (root === save.current) continue
-    q.xp += boostedXp(q, DAYCARE_XP, from, now)
+    if (care[root]) q.xp += boostedXp(q, DAYCARE_XP, from, now)
     dropExpiredBoost(q, now)
     q.last = now
     syncMoves(q)
   }
   var p = current(save)
-  if (!p) return save
+  if (!p || away[save.current]) return save
   var hours = Math.max(0, (now - (p.last || now)) / 3600000)
   var wasWell = p.satiety >= 50 && p.happiness >= 50
   p.satiety = clamp(p.satiety - SATIETY_DECAY * hours)
@@ -336,6 +402,7 @@ function act(save, action, now) {
   var p = current(save)
   if (!p) return ""
   var n = name(p.species)
+  if (isAway(save, save.current)) return n + " is away on an expedition."
   if (action === "feed") {
     if (p.satiety >= 95) return n + " isn't hungry."
     p.satiety = clamp(p.satiety + 25); gain(p, action, now)
@@ -357,9 +424,36 @@ function act(save, action, now) {
 function switchTo(save, root, now) {
   if (!save.pets[root]) return save
   tick(save, now)
+  // The old partner takes the new one's spot at the Day Care, if it had one
+  var spot = (save.daycare || []).indexOf(root)
+  if (spot >= 0) {
+    if (save.current && save.pets[save.current]) save.daycare[spot] = save.current
+    else save.daycare.splice(spot, 1)
+  }
   save.current = root
   current(save).last = now
   return save
+}
+
+// ---- Day Care ----
+
+function inDaycare(save, root) { return (save.daycare || []).indexOf(root) >= 0 }
+function daycareFull(save) { return (save.daycare || []).length >= DAYCARE_SIZE }
+
+// Sends a Pokémon to the Day Care or takes it back. Returns the message to show.
+function toggleDaycare(save, root) {
+  var p = save.pets[root]
+  if (!p) return ""
+  if (!save.daycare) save.daycare = []
+  var n = name(p.species), i = save.daycare.indexOf(root)
+  if (i >= 0) {
+    save.daycare.splice(i, 1)
+    return n + " left the Day Care. It will rest without gaining XP."
+  }
+  if (root === save.current) return n + " is your partner: it already earns XP with you."
+  if (daycareFull(save)) return "The Day Care is full (" + DAYCARE_SIZE + "). Take a Pokémon back first."
+  save.daycare.push(root)
+  return n + " joined the Day Care! +" + DAYCARE_XP + " XP per hour."
 }
 
 // Back to the first stage of the family, keeping the shiny choice.
@@ -417,7 +511,8 @@ function petOf(save, ref) { return ref ? specimen(save, ref) : current(save) }
 
 function evolutionOptions(save, now, root) {
   var p = petOf(save, root)
-  if (!p) return []
+  var ref = root || save.current
+  if (!p || (!isBoxed(ref) && isAway(save, refRoot(ref)))) return []
   var lv = level(p)
   return children(p.species).filter(function(k) { return lv >= evoLevel(k) }).map(function(k) {
     return { slug: k, name: name(k), text: conditionText(k), met: conditionMet(save, p, k, now) }
@@ -461,7 +556,7 @@ function postpone(save, root) {
 
 function maybeEvolve(save, now) {
   var p = current(save)
-  if (!p || !isAuto(p)) return null
+  if (!p || !isAuto(p) || isAway(save, save.current)) return null
   var kid = children(p.species)[0]
   return level(p) >= evoLevel(kid) ? evolveTo(save, kid, now) : null
 }
@@ -499,6 +594,16 @@ function searchesLeft(save, now) {
 
 function minutesToRefill(now) { return Math.ceil(((windowOf(now) + 1) * WINDOW - now) / 60000) }
 
+// How often a species shows up in the tall grass: its catch rate, less for
+// evolved forms, much less for rare Pokémon and less still for legendaries.
+function encounterWeight(s) {
+  var w = captureRate(s) * (Dex.species[s][1] ? 0.25 : 1)
+  var k = legendKind(s)
+  if (k === 2) return w * MYTHICAL_WEIGHT
+  if (k === 1) return w * LEGENDARY_WEIGHT
+  return captureRate(s) <= RARE_RATE ? w * RARE_WEIGHT : w
+}
+
 // A wild Pokémon from a family you don't own yet; rarer ones show up less.
 // With the Nav-Dex on, it is always the chosen species. Once every family is
 // caught, any species whose box still has room can show up.
@@ -514,7 +619,7 @@ function startEncounter(save, now) {
     var wild = Object.keys(Dex.species).filter(function(s) { return !save.pets[family(s)] })
     if (!wild.length) wild = Object.keys(Dex.species).filter(function(s) { return !boxFull(save, family(s)) })
     if (!wild.length) return { error: "done" }
-    slug = pick(wild, function(s) { return captureRate(s) * (Dex.species[s][1] ? 0.25 : 1) })
+    slug = pick(wild, encounterWeight)
   }
   save.explore.encounters += 1
   markSeen(save, slug)
@@ -526,16 +631,21 @@ function startEncounter(save, now) {
   return save.encounter
 }
 
-function catchChance(e) {
-  var base = captureRate(e.species) / 255
-  var mod = e.angry > 0 ? 2 : e.eating > 0 ? 0.5 : 1
-  return Math.max(0.03, Math.min(0.9, 0.05 + 0.55 * base * mod))
+function ballMult(ball) { return Items.items[ball] && itemKind(ball) === "ball" ? Items.items[ball][4].mult : 1 }
+
+// Chance that one throw catches it. A rock makes it easier to catch (×2), bait harder (×0.5).
+function catchChance(e, ball) {
+  if (ball === "master-ball") return 1
+  var mood = e.angry > 0 ? 2 : e.eating > 0 ? 0.5 : 1
+  var a = captureRate(e.species) * ballMult(ball || "poke-ball") * SAFARI_HP_FACTOR * SAFARI_BONUS * mood
+  return Math.min(MAX_CATCH, Math.pow(Math.min(255, a) / 255, 0.75))
 }
 
 function fleeChance(e) {
   var base = captureRate(e.species) / 255
   var mod = e.angry > 0 ? 2 : e.eating > 0 ? 0.35 : 1
-  return Math.max(0.02, Math.min(0.7, (0.06 + 0.22 * (1 - base)) * mod))
+  var legend = legendKind(e.species) ? LEGEND_FLEE : 1
+  return Math.max(0.02, Math.min(0.7, (0.06 + 0.22 * (1 - base)) * mod * legend))
 }
 
 // End of a Safari turn: the wild Pokémon may run, then its mood wears off.
@@ -548,29 +658,50 @@ function endTurn(save) {
   return fled
 }
 
-function throwBall(save, now) {
+function ballsLeft(save) {
+  return ["poke-ball", "great-ball", "ultra-ball", "master-ball"].reduce(function(a, b) { return a + (save.bag[b] || 0) }, 0)
+}
+
+// Puts a newly caught Pokémon at the Day Care, or in its family's box.
+// Returns its ref, or "" when the box is full.
+function addCaught(save, caught) {
+  var root = family(caught.species)
+  if (boxFull(save, root)) return ""
+  var ref = root
+  if (!save.pets[root]) {
+    save.pets[root] = caught
+  } else {
+    if (!save.box) save.box = {}
+    save.box[root] = boxOf(save, root).concat([caught])
+    ref = root + "/" + (save.box[root].length - 1)
+  }
+  markLineSeen(save, caught.species)
+  if (!save.current || !save.pets[save.current]) save.current = root
+  else if (ref === root && !daycareFull(save) && !inDaycare(save, root)) {
+    if (!save.daycare) save.daycare = []
+    save.daycare.push(root)
+  }
+  return ref
+}
+
+function throwBall(save, now, ball) {
   var e = save.encounter
+  ball = ball || "poke-ball"
   if (!e) return null
+  if (!(save.bag[ball] > 0)) return { result: "noball", shakes: 0 }
   var root = family(e.species)
   if (boxFull(save, root)) return { result: "full", shakes: 0 }
-  if (Math.random() < catchChance(e)) {
-    var caught = freshPet(e.species, now, e.shiny, xpForLevel(e.level), e)
-    var ref = root
-    if (!save.pets[root]) {
-      save.pets[root] = caught
-    } else {
-      if (!save.box) save.box = {}
-      save.box[root] = boxOf(save, root).concat([caught])
-      ref = root + "/" + (save.box[root].length - 1)
-    }
-    markLineSeen(save, e.species)
-    if (!save.current || !save.pets[save.current]) save.current = root
+  consume(save, ball)
+  var chance = catchChance(e, ball)
+  if (Math.random() < chance) {
+    var ref = addCaught(save, freshPet(e.species, now, e.shiny, xpForLevel(e.level), e))
     save.encounter = null
     var charm = !save.charm && ownedCount(save) >= familyTotal()
     if (charm) save.charm = true
     return { result: "caught", shakes: 3, ref: ref, boxed: ref !== root, charm: charm }
   }
-  return { result: endTurn(save) ? "fled" : "broke", shakes: randInt(0, 2) }
+  // The closer it was, the more the ball shakes before it breaks free
+  return { result: endTurn(save) ? "fled" : "broke", shakes: Math.min(2, Math.floor(Math.random() * 3 * (0.5 + chance))) }
 }
 
 function throwRock(save) {
@@ -604,26 +735,46 @@ function usefulItems(save) {
   return useful
 }
 
-// Finds an item: mostly berries, then candies, mints and bottle caps. Evolution
-// items come up when missing from the bag, favouring the ones your Pokémon
-// need. Returns its id, or null when the search was already used.
-function searchItem(save, now) {
-  refreshWindow(save, now)
-  if (searchesLeft(save, now) <= 0) return null
-  save.explore.searches += 1
-  var useful = usefulItems(save)
-  var ids = Object.keys(Items.items)
-  var missingEvo = ids.filter(function(i) { return itemKind(i) === "evolution" && !(save.bag[i] > 0) })
+// One item from the search pool: mostly berries, then candies, provisions,
+// mints and bottle caps. Evolution items come up when missing from the bag,
+// favouring the ones your Pokémon need. Balls have their own roll.
+function rollItem(save, useful, taken) {
+  var ids = Object.keys(Items.items).filter(function(i) { return itemKind(i) !== "ball" })
+  var missingEvo = ids.filter(function(i) { return itemKind(i) === "evolution" && !(save.bag[i] > 0) && !taken[i] })
   var evoTotal = missingEvo.reduce(function(a, i) { return a + (useful[i] ? 4 : 1) }, 0)
   var pool = ids.filter(function(i) { return itemKind(i) !== "evolution" || missingEvo.indexOf(i) >= 0 })
-  var found = pick(pool, function(i) {
+  return pick(pool, function(i) {
     return itemKind(i) === "evolution" ? EVOLUTION_WEIGHT * (useful[i] ? 4 : 1) / evoTotal : Items.items[i][2]
   })
-  save.bag[found] = (save.bag[found] || 0) + 1
-  return found
 }
 
-var KIND_ORDER = ["incense", "berry", "candy", "mint", "cap", "evolution"]
+// The search of this half hour: a handful of Poké Balls (sometimes better
+// ones), 1 to 3 apples (sometimes Big or even Golden) and SEARCHES_PER_WINDOW items. Returns [{ id, count }], or null when
+// you already searched.
+function search(save, now) {
+  refreshWindow(save, now)
+  if (searchesLeft(save, now) <= 0) return null
+  save.explore.searches = SEARCHES_PER_WINDOW
+  var found = {}, order = []
+  function add(id, n) {
+    if (!found[id]) order.push(id)
+    found[id] = (found[id] || 0) + n
+    save.bag[id] = (save.bag[id] || 0) + n
+  }
+  add("poke-ball", randInt(BALLS_FOUND[0], BALLS_FOUND[1]))
+  if (Math.random() < GREAT_BALL_ODDS) add("great-ball", randInt(1, 2))
+  if (Math.random() < ULTRA_BALL_ODDS) add("ultra-ball", 1)
+  if (Math.random() < MASTER_BALL_ODDS) add("master-ball", 1)
+  for (var a = randInt(APPLES_FOUND[0], APPLES_FOUND[1]); a > 0; a--)
+    add(pick(Object.keys(APPLE_QUALITY), function(k) { return APPLE_QUALITY[k] }), 1)
+  var useful = usefulItems(save)
+  for (var i = 0; i < SEARCHES_PER_WINDOW; i++) add(rollItem(save, useful, found), 1)
+  return order.map(function(id) { return { id: id, count: found[id] } })
+}
+
+var KIND_ORDER = ["ball", "incense", "berry", "candy", "mint", "cap", "food", "medicine", "pp", "status", "revive", "escape", "evolution"]
+var PROVISION_KINDS = ["food", "medicine", "pp", "status", "revive", "escape"]
+function isProvision(id) { return PROVISION_KINDS.indexOf(itemKind(id)) >= 0 }
 
 function bagItems(save) {
   return Object.keys(save.bag).filter(function(i) { return save.bag[i] > 0 }).sort(function(a, b) {
@@ -648,9 +799,12 @@ function useItem(save, id, now, stat) {
     consume(save, id)
     return "You lit the Incense! " + param.encounters + " wild encounters per half-hour for " + incenseLeft(save, now) + "."
   }
+  if (kind === "ball") return "Throw it at a wild Pokémon."
+  if (PROVISION_KINDS.indexOf(kind) >= 0) return "Pack it for an expedition: the team uses it on its own."
   if (!p) return "You need a partner Pokémon first."
   var n = name(p.species)
   if (kind === "evolution") return "It's used up when a Pokémon that needs it evolves."
+  if (isAway(save, save.current)) return n + " is away on an expedition."
   if (kind === "candy") {
     if (level(p) >= MAX_LEVEL) return n + " is already at level " + MAX_LEVEL + "."
     if (param.level) p.xp = (Math.floor(p.xp / 10) + 1) * 10
@@ -696,7 +850,7 @@ function boostLeft(p, now) {
 
 function needsAttention(save, now) {
   var p = current(save)
-  if (!p) return false
+  if (!p || isAway(save, save.current)) return false
   return p.satiety < 30 || p.happiness < 30 || evolutionPending(save, now)
 }
 
@@ -796,7 +950,7 @@ function trainees(save) { return ownedRoots(save).filter(function(r) { return !!
 
 function canTrain(save, root) {
   var p = save.pets[root]
-  return !!p && (!!p.training || trainees(save).length < TRAIN_SLOTS)
+  return !!p && !isAway(save, root) && (!!p.training || trainees(save).length < TRAIN_SLOTS)
 }
 
 // kind "ev": target is the stat's EV goal; kind "xp": target is a level.
@@ -899,6 +1053,7 @@ function relearnable(p) {
 function relearn(save, ref, id, slot) {
   var p = specimen(save, ref)
   if (!p) return ""
+  if (!isBoxed(ref) && isAway(save, refRoot(ref))) return name(p.species) + " is away on an expedition."
   if (!relearnable(p).some(function(m) { return m.id === id })) return ""
   var n = name(p.species)
   if (!p.moves) p.moves = []
@@ -911,3 +1066,64 @@ function relearn(save, ref, id, slot) {
   p.moves[slot] = id
   return "1, 2 and… Poof! " + n + " forgot " + moveName(old) + " and learned " + moveName(id) + "!"
 }
+
+// ---- Shop ----
+// Poké Dollars come from expeditions and from selling items. Most things are
+// always in stock; mints and the rarer evolution items change every day.
+
+var DAILY_MINTS = 3
+var DAILY_EVOLUTION = 4
+
+function price(id) { return Items.prices[id] || 0 }
+function sellPrice(id) { return Items.sellOnly[id] || Math.floor(price(id) * SELL_RATE) }
+function money(save) { return save.money || 0 }
+
+function day(now) { var d = new Date(now); return d.getFullYear() * 1000 + Math.floor((d - new Date(d.getFullYear(), 0, 1)) / 86400000) }
+
+// Items for sale today, by shelf.
+function shopStock(now) {
+  var rand = seeded("shop:" + day(now))
+  var ids = Object.keys(Items.prices).filter(function(i) { return price(i) > 0 })
+  function shelf(kinds) { return ids.filter(function(i) { return kinds.indexOf(itemKind(i)) >= 0 }) }
+  function some(list, n) {
+    list = list.slice()
+    var out = []
+    while (list.length && out.length < n) out.push(list.splice(Math.floor(rand() * list.length), 1)[0])
+    return out
+  }
+  var stones = shelf(["evolution"]).filter(function(i) { return /-stone$/.test(i) })
+  var rare = shelf(["evolution"]).filter(function(i) { return !/-stone$/.test(i) })
+  return [
+    { name: "Balls", items: shelf(["ball"]) },
+    { name: "Provisions", items: shelf(["food", "medicine", "pp", "status", "revive", "escape"]) },
+    { name: "Partner", items: shelf(["berry", "candy", "incense", "cap"]).concat(some(shelf(["mint"]), DAILY_MINTS)) },
+    { name: "Evolution", items: stones.concat(some(rare, DAILY_EVOLUTION)) }
+  ]
+}
+
+function inStock(id, now) { return shopStock(now).some(function(s) { return s.items.indexOf(id) >= 0 }) }
+
+// Returns "" when done, or why not.
+function buy(save, id, count, now) {
+  count = Math.max(1, Math.floor(count || 1))
+  if (!inStock(id, now)) return "That isn't for sale today."
+  var cost = price(id) * count
+  if (money(save) < cost) return "Not enough money: " + count + " × " + itemName(id) + " costs ₽" + cost + "."
+  save.money = money(save) - cost
+  save.bag[id] = (save.bag[id] || 0) + count
+  return ""
+}
+
+function sell(save, id, count) {
+  count = Math.max(1, Math.floor(count || 1))
+  var each = sellPrice(id)
+  if (!each) return "The shop doesn't buy that."
+  if ((save.bag[id] || 0) < count) return "You don't have that many."
+  save.bag[id] -= count
+  if (save.bag[id] <= 0) delete save.bag[id]
+  save.money = money(save) + each * count
+  return ""
+}
+
+function sellable(save) { return bagItems(save).filter(function(i) { return sellPrice(i) > 0 }) }
+

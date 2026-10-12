@@ -4,7 +4,8 @@
 
 Raise a partner Pokémon next to your clock, explore the tall grass between two
 commits, catch all 905 Pokémon (Gen 1–8), fill their boxes, hunt shinies with
-the Nav-Dex, train them against a Substitute doll and teach them their moves.
+the Nav-Dex, train them against a Substitute doll, teach them their moves and
+send them on Mystery Dungeon-style expeditions.
 
 ![Pokemagotchi](preview.png)
 
@@ -26,18 +27,28 @@ the Nav-Dex, train them against a Substitute doll and teach them their moves.
 - **Moves.** Pokémon learn their real level-up moves (from the latest main-series
   game that has them) as they grow. They keep the four most recent and learn
   more when they evolve. The **Move Reminder** brings back any move they know.
-- **Items.** Search for items **5 times every half hour**. You can find berries
-  (XP boosts), Exp. Candies, Rare Candies, Mints (nature), Bottle Caps (IVs),
-  every evolution item and the **Incense**: light it to get **10 encounters per
-  half hour instead of 3, for 1h30**.
+- **Items.** **Search once every half hour** and see everything you found:
+  **1 to 5 Poké Balls** (sometimes Great or Ultra Balls, very rarely a Master
+  Ball) and 5 items: berries (XP boosts), Exp. Candies, Rare Candies, Mints
+  (nature), Bottle Caps (IVs), expedition provisions, every evolution item and
+  the **Incense**: light it to get **10 encounters per half hour instead of 3,
+  for 1h30**.
+- **Expeditions.** Send a team of up to 3 on a Mystery Dungeon-style expedition
+  (30 min to 4 h). They fight wild Pokémon from the whole Pokédex with their real
+  stats and moves (Showdown damage formula), run into traps, chests, shops,
+  bosses and legendaries, live off the provisions you packed, and may come back
+  with new friends. Plan them in their own window, then follow the team walking
+  down a Mystery Dungeon corridor right in the popup.
 - **Evolution.** Pokémon evolve by level, by item, with high friendship, with a
   strong bond, or at a certain time of day. When a Pokémon can evolve in more than
   one way, you choose which.
 - **Real stats.** Every Pokémon has IVs, a nature, an ability (with a 1/20
   chance of its hidden ability), EVs and stats computed with the main-series formula.
-- **Day Care and training.** The Pokémon you aren't walking with play at the
-  Day Care and slowly gain XP. Up to 5 of them can train EVs or levels against
-  the Substitute doll.
+- **Day Care and training.** Up to 10 of the Pokémon you aren't walking with
+  play at the Day Care and slowly gain XP; the others rest. Up to 5 can train
+  EVs or levels against the Substitute doll.
+- **Shop.** Expeditions pay Poké Dollars: buy Balls, provisions, candies, mints
+  and evolution items, or sell what you don't need.
 
 ## Screenshots
 
@@ -102,22 +113,30 @@ Click the Pokémon (or the Poké Ball when you have none yet) in your bar.
 
 | Where | What you can do |
 | --- | --- |
-| Main screen | **Feed**, **Pet**, **Play**, **Wild** (encounter), **Search** (item), **Bag**. Click your partner for its summary. |
-| Title (`NAME ▾`) | Opens the **Pokédex**. Search by name, filter to caught families, click an entry to open its **box**. |
+| Main screen | **Feed**, **Pet**, **Play**, **Wild** (encounter), **Search** (items), **Bag**, **Plan an expedition**, and one line per team out exploring. Click your partner for its summary. |
+| Expedition line | Follow that team: the corridor it walks down, HP / PP / fullness, the log (click a fight for the details), **Call the team back**, then its report. |
+| Plan an expedition | A window to pick the place, difficulty, team and provisions, plus the **History**. Setting off closes it. |
+| Title (`NAME ▾`) | Opens the **menu**: Partner, Pokédex, Bag, Shop, Day Care, Training, Expeditions, Exp. history, Summary. |
+| Pokédex | Search by name, filter to caught families, click an entry to open its **box**. |
+| Shop | **Buy** by shelf (Balls, Provisions, Partner, Evolution) or **Sell** at half price. |
 | Box | All your Pokémon of that family (⌂ = at the Day Care, ★ = partner) and the **Nav-Dex** for that family. |
 | Summary | Stats, IVs, EVs, nature and ability. Buttons for **Evolve**, **Train**, **Moves**, **Make partner**, **To Day Care** and **Release**. |
 | Moves | Click a move to see its description. **Move Reminder** brings back an older move. |
-| Day Care | Your other Pokémon wandering around, 10 per box. Scroll to switch boxes. |
+| Day Care | The 10 Pokémon earning XP there, and all the others: click one to send it or take it back. |
 
 ### Game rules
 
 | Rule | Value |
 | --- | --- |
 | Hunger / boredom | −6 fullness and −5 happiness per hour (partner only) |
-| Passive XP | 36 XP/h for your partner while fullness and happiness are ≥ 50; 12 XP/h at the Day Care |
+| Passive XP | 36 XP/h for your partner while fullness and happiness are ≥ 50; 12 XP/h for the 10 Pokémon at the Day Care, none for the others |
 | Level | 5 + XP / 10, up to Lv. 100 |
 | Wild encounters | 3 per half hour (10 with Incense), refilled at :00 and :30. Wild Pokémon are Lv. 1–40 |
-| Item searches | 5 per half hour |
+| Search | 1 per half hour: 1–5 Poké Balls, maybe Great (30%), Ultra (8%) or Master (0.3%) Balls, 1–3 apples (Apple 70%, Big Apple 25%, Golden Apple 5%) and 5 items |
+| Poké Dollars | Per expedition: (6 per wild Pokémon defeated + 12 per floor + 80 per boss) × 1 / 1.5 / 2.2 / 3 by difficulty, +25% if cleared, half if defeated. Shop sells back at half price |
+| Catching | (catch rate × Ball × 7/9 × 1.5 / 255)^0.75 per throw, max 95%; ×2 after a rock, ×0.5 while eating |
+| Expeditions | Easy 5 floors / 30 min, Normal 10 / 1 h, Hard 15 / 2 h, Expert 20 / 4 h. Wild Pokémon are 0–5 levels under the team |
+| Exploration rank | Normal → Bronze (60 pts) → Silver (250) → Gold (700) → Platinum (1500) → Diamond (3000) → Master (6000): more places, difficulties, provisions (8 → 20) and teams (1 → 3) |
 | Shiny odds | 1/64, or 1/32 with the Shiny Charm |
 | Box size | 32 Pokémon per family, the Day Care one included |
 | Incense | 10 encounters per half hour for 1h30. Lighting another one adds 1h30 |
@@ -130,14 +149,42 @@ Boxed Pokémon rest: they don't gain XP and can't train. Send one to the Day Car
 to swap it with the Pokémon there (your partner, if that's the one).
 
 Wild Pokémon come from the families you haven't caught yet, unless the Nav-Dex
-is on. Once you've caught every family, they come from every species whose box
+is on. Rare Pokémon (catch rate 45 or less) show up less, legendaries much less.
+
+### Expeditions
+
+Click **⛰ Plan an expedition**, pick a place, a difficulty, up to 3 Pokémon from
+the Day Care and the provisions to pack (**Pack for me** fills the bag for you).
+The team then explores on its own; nothing it does needs you. Click its line in
+the popup to watch it walk down the corridor, floor after floor.
+
+- Each floor is played out when its time is up: battles, items, traps and events.
+  HP and PP carry over from one fight to the next, the team gets hungry while
+  walking and recovers a little HP on each floor.
+- Provisions are used automatically: food under 40 fullness, potions under 30% HP
+  in a fight (50% after), Ethers when PP run low, cures after a fight, a Revive
+  the moment someone faints, and an Escape Rope when only one is left standing.
+- Defeated wild Pokémon give XP and their real EV yield. Some get up and want to
+  join (more often for common ones, three times more for shinies).
+- Bosses wait on the last floor (Normal), floors 8 and 15 (Hard) or every 5 floors
+  (Expert). A legendary of the place may show up instead: young ones from Normal,
+  most of them from Hard, all of them (mythicals too) on Expert. A legendary only
+  offers to join, by luck, once you've met it at least twice in that place.
+- **Call the team back** to make it walk home (half the time spent, 30 min at most)
+  with everything it found. A team that faints loses half of its loot, except what
+  it left at a Kangaskhan Storage.
+- Your partner can go too, and protects a teammate once. Pokémon on an expedition
+  don't play at the Day Care and can't train.
+
+The window is a normal window: Hyprland tiles it. To make it float, add a window
+rule matching the title `Pokemagotchi – Expeditions`. Once you've caught every family, they come from every species whose box
 still has room.
 
 ## Files and privacy
 
 - Code and assets: `~/.config/omarchy/plugins/ch4rybd3.pokemagotchi/`
-- Save: `~/.local/state/omarchy/pokemagotchi.json` (plain JSON, written only when
-  you interact with the widget)
+- Save: `~/.local/state/omarchy/pokemagotchi.json` (plain JSON, written when you
+  interact with the widget, or once when an expedition comes home)
 
 The plugin needs no network access and starts no background process. It only
 runs `notify-send` for notifications and writes nothing but its save file.
@@ -148,9 +195,14 @@ runs `notify-send` for notifications and writes nothing but its save file.
 | --- | --- |
 | `BarWidget.qml` | Bar button and popup UI |
 | `Pet.js` | Game rules, save format and migrations (rates at the top of the file) |
-| `Dex.js`, `Info.js`, `Items.js`, `Moves.js` | Generated game data |
+| `Expedition.js` | Expeditions: places, difficulties, events, provisions, ranks |
+| `Combat.js` | Battle engine (Showdown damage formula) |
+| `ExpeditionWindow.qml` | The window to plan expeditions, and their history |
+| `CorridorScene.qml` | The corridor a team walks down, in the popup |
+| `Dex.js`, `Info.js`, `Items.js`, `Moves.js`, `Battle.js` | Generated game data |
 | `PokeSprite.qml`, `ItemSprite.qml`, `SubstituteScene.qml` | Sprite helpers |
 | `tools/gen-moves.py` | Regenerates `Moves.js` from the PokeAPI CSV dump |
+| `tools/gen-battle.py` | Regenerates `Battle.js` (EV yields, legendaries, type chart, move effects) |
 
 Saving a file reloads the widget. Changes to the `.js` libraries are cached by
 the QML engine, so restart the shell to pick them up:
@@ -163,6 +215,7 @@ To regenerate the move data:
 
 ```bash
 python3 tools/gen-moves.py /tmp/pokeapi-csv   # downloads the CSVs it needs
+python3 tools/gen-battle.py /tmp/pokeapi-csv  # run it after gen-moves.py
 ```
 
 ## Credits
