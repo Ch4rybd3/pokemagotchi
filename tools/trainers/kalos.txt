@@ -1,0 +1,103 @@
+# Kalos Tower: in the spirit of X/Y.
+# == Class / Name | tier N | rating 1-10 | ai 1-4 [| boss]
+# Species @ Item | Ability | Nature | EVs | Moves  (empty EVs = 84 in every stat)
+
+# ---- Tier 1: Novice (Gyms 1-4) ----
+
+== Gym Leader / Viola | tier 1 | rating 2 | ai 1
+Surskit @ Oran Berry | Swift Swim | Modest | | Bubble, Quick Attack, Water Sport, Infestation
+Ledyba | Early Bird | Jolly | | Struggle Bug, Supersonic, Comet Punch, Reflect
+Masquerain | Intimidate | Modest | | Air Slash, Bug Buzz, Water Pulse, Quiver Dance
+Vivillon @ Sitrus Berry | Shield Dust | Modest | | Infestation, Gust, Harden, Stun Spore
+
+== Gym Leader / Grant | tier 1 | rating 2 | ai 1
+Onix @ Oran Berry | Sturdy | Impish | | Rock Tomb, Bind, Iron Tail, Stealth Rock
+Tyrunt | Strong Jaw | Adamant | | Bite, Rock Tomb, Roar, Stomp
+Amaura | Refrigerate | Modest | | Rock Tomb, Aurora Beam, Thunder Wave, Take Down
+Tyrantrum @ Sitrus Berry | Strong Jaw | Adamant | | Crunch, Rock Tomb, Dragon Tail, Stomp
+
+== Gym Leader / Korrina | tier 1 | rating 3 | ai 2
+Mienfoo @ Oran Berry | Inner Focus | Jolly | | Power-Up Punch, Fake Out, U-turn, Detect
+Machoke | No Guard | Adamant | | Power-Up Punch, Rock Tomb, Strength, Bulk Up
+Hawlucha | Unburden | Jolly | | Power-Up Punch, Flying Press, Aerial Ace, Swords Dance
+Lucario @ Sitrus Berry | Steadfast | Adamant | | Power-Up Punch, Metal Claw, Quick Attack, Bone Rush
+
+== Gym Leader / Ramos | tier 1 | rating 3 | ai 2 | boss
+Jumpluff | Chlorophyll | Jolly | | Leech Seed, Acrobatics, Grass Knot, Sleep Powder
+Weepinbell | Chlorophyll | Modest | | Grass Knot, Acid, Gastro Acid, Sleep Powder
+Ivysaur | Overgrow | Modest | | Razor Leaf, Poison Powder, Sleep Powder, Take Down
+Gogoat @ Sitrus Berry | Sap Sipper | Adamant | | Grass Knot, Take Down, Bulldoze, Bulk Up
+
+# ---- Tier 2: Ace (Gyms 5-8) ----
+
+== Gym Leader / Clemont | tier 2 | rating 4 | ai 2
+Emolga | Static | Timid | | Volt Switch, Aerial Ace, Nuzzle, Double Team
+Magneton | Sturdy | Modest | | Thunderbolt, Mirror Shot, Electric Terrain, Thunder Wave
+Dedenne | Pickup | Timid | | Thunderbolt, Play Rough, Nuzzle, Charm
+Heliolisk @ Sitrus Berry | Dry Skin | Timid | | Thunderbolt, Grass Knot, Surf, Parabolic Charge
+
+== Gym Leader / Valerie | tier 2 | rating 4 | ai 2
+Mawile | Intimidate | Adamant | | Play Rough, Iron Head, Sucker Punch, Swords Dance
+Mr. Mime | Filter | Timid | | Dazzling Gleam, Psychic, Reflect, Light Screen
+Aromatisse | Healer | Modest | | Moonblast, Psychic, Aromatherapy, Calm Mind
+Sylveon @ Sitrus Berry | Pixilate | Modest | | Hyper Voice, Draining Kiss, Charm, Quick Attack
+
+== Gym Leader / Olympia | tier 2 | rating 5 | ai 3
+Sigilyph | Magic Guard | Timid | | Psychic, Air Slash, Cosmic Power, Reflect
+Slowking | Own Tempo | Calm | | Psychic, Scald, Slack Off, Calm Mind
+Espeon | Magic Bounce | Timid | | Psychic, Shadow Ball, Dazzling Gleam, Morning Sun
+Meowstic @ Sitrus Berry | Prankster | Timid | | Psychic, Thunder Wave, Reflect, Light Screen
+
+== Gym Leader / Wulfric | tier 2 | rating 5 | ai 3 | boss
+Abomasnow | Snow Warning | Modest | | Blizzard, Energy Ball, Ice Shard, Wood Hammer
+Cryogonal | Levitate | Calm | | Ice Beam, Rapid Spin, Recover, Reflect
+Glalie | Inner Focus | Jolly | | Icicle Crash, Earthquake, Ice Shard, Crunch
+Avalugg @ Sitrus Berry | Sturdy | Impish | | Avalanche, Gyro Ball, Crunch, Rapid Spin
+
+# ---- Tier 3: Elite (Elite Four) ----
+
+== Elite Four / Malva | tier 3 | rating 6 | ai 3
+Pyroar @ Life Orb | Unnerve | Timid | 4 HP / 252 SpA / 252 Spe | Fire Blast, Hyper Voice, Dark Pulse, Will-O-Wisp
+Torkoal @ Leftovers | Drought | Bold | 252 HP / 252 Def / 4 SpD | Lava Plume, Earth Power, Stealth Rock, Yawn
+Chandelure @ Choice Scarf | Flash Fire | Timid | 4 HP / 252 SpA / 252 Spe | Shadow Ball, Fire Blast, Energy Ball, Trick
+Talonflame @ Sharp Beak | Gale Wings | Adamant | 252 Atk / 4 Def / 252 Spe | Brave Bird, Flare Blitz, U-turn, Swords Dance
+Houndoom @ Focus Sash | Flash Fire | Timid | 4 HP / 252 SpA / 252 Spe | Fire Blast, Dark Pulse, Solar Beam, Nasty Plot
+
+== Elite Four / Siebold | tier 3 | rating 6 | ai 3
+Clawitzer @ Choice Specs | Mega Launcher | Modest | 252 HP / 252 SpA / 4 SpD | Water Pulse, Dark Pulse, Aura Sphere, Dragon Pulse
+Starmie @ Life Orb | Analytic | Timid | 4 HP / 252 SpA / 252 Spe | Hydro Pump, Psychic, Thunderbolt, Ice Beam
+Gyarados @ Leftovers | Intimidate | Adamant | 252 HP / 252 Atk / 4 Spe | Waterfall, Dragon Dance, Earthquake, Ice Fang
+Barbaracle @ White Herb | Tough Claws | Adamant | 252 Atk / 4 Def / 252 Spe | Shell Smash, Razor Shell, Stone Edge, Cross Chop
+Blastoise @ Sitrus Berry | Torrent | Modest | 252 HP / 252 SpA / 4 SpD | Hydro Pump, Ice Beam, Dark Pulse, Rapid Spin
+
+== Elite Four / Wikstrom | tier 3 | rating 7 | ai 3
+Klefki @ Light Clay | Prankster | Bold | 252 HP / 252 Def / 4 SpD | Reflect, Light Screen, Thunder Wave, Foul Play
+Probopass @ Leftovers | Sturdy | Modest | 252 HP / 252 SpA / 4 SpD | Power Gem, Flash Cannon, Earth Power, Thunder Wave
+Scizor @ Life Orb | Technician | Adamant | 252 HP / 252 Atk / 4 SpD | Bullet Punch, X-Scissor, Knock Off, Swords Dance
+Aegislash @ Leftovers | Stance Change | Quiet | 252 HP / 252 SpA / 4 Atk | Shadow Ball, Flash Cannon, King's Shield, Shadow Sneak
+Bronzong @ Mental Herb | Levitate | Relaxed | 252 HP / 252 Def / 4 SpD | Gyro Ball, Earthquake, Trick Room, Stealth Rock
+
+== Elite Four / Drasna | tier 3 | rating 7 | ai 4 | boss
+Dragalge @ Black Sludge | Adaptability | Modest | 252 HP / 252 SpA / 4 SpD | Sludge Bomb, Dragon Pulse, Scald, Toxic Spikes
+Druddigon @ Rocky Helmet | Rough Skin | Adamant | 252 HP / 252 Atk / 4 Def | Dragon Tail, Gunk Shot, Glare, Sucker Punch
+Altaria @ Leftovers | Natural Cure | Calm | 252 HP / 4 Def / 252 SpD | Dragon Pulse, Moonblast, Roost, Cotton Guard
+Noivern @ Choice Specs | Infiltrator | Timid | 4 HP / 252 SpA / 252 Spe | Boomburst, Draco Meteor, Hurricane, Flamethrower
+Goodra @ Assault Vest | Sap Sipper | Modest | 252 HP / 252 SpA / 4 SpD | Draco Meteor, Fire Blast, Thunderbolt, Sludge Bomb
+
+# ---- Tier 4: Master (Champions) ----
+
+== Champion / Diantha | tier 4 | rating 9 | ai 4 | boss
+Hawlucha @ Power Herb | Unburden | Jolly | 252 Atk / 4 Def / 252 Spe | Sky Attack, Close Combat, Swords Dance, Encore
+Tyrantrum @ Life Orb | Strong Jaw | Adamant | 252 Atk / 4 Def / 252 Spe | Head Smash, Crunch, Earthquake, Dragon Dance
+Aurorus @ Choice Specs | Refrigerate | Modest | 252 HP / 252 SpA / 4 SpD | Hyper Voice, Freeze-Dry, Earth Power, Thunderbolt
+Gourgeist @ Leftovers | Frisk | Impish | 252 HP / 4 Atk / 252 Def | Seed Bomb, Shadow Sneak, Will-O-Wisp, Leech Seed
+Goodra @ Sitrus Berry | Sap Sipper | Modest | 252 HP / 252 SpA / 4 SpD | Draco Meteor, Fire Blast, Sludge Bomb, Thunderbolt
+Gardevoir @ Life Orb | Trace | Timid | 4 HP / 252 SpA / 252 Spe | Moonblast, Psychic, Focus Blast, Calm Mind
+
+== Pokémon Trainer / Calem | tier 4 | rating 8 | ai 4
+Meowstic @ Light Clay | Prankster | Bold | 252 HP / 252 Def / 4 SpD | Psychic, Reflect, Light Screen, Thunder Wave
+Absol @ Life Orb | Super Luck | Jolly | 252 Atk / 4 Def / 252 Spe | Night Slash, Psycho Cut, Sucker Punch, Swords Dance
+Jolteon @ Choice Specs | Volt Absorb | Timid | 4 HP / 252 SpA / 252 Spe | Thunderbolt, Shadow Ball, Volt Switch, Hidden Power
+Delphox @ Life Orb | Blaze | Timid | 4 HP / 252 SpA / 252 Spe | Fire Blast, Psychic, Grass Knot, Nasty Plot
+Talonflame @ Choice Band | Gale Wings | Adamant | 252 Atk / 4 Def / 252 Spe | Brave Bird, Flare Blitz, U-turn, Quick Attack
+Greninja @ Focus Sash | Protean | Timid | 4 HP / 252 SpA / 252 Spe | Hydro Pump, Dark Pulse, Ice Beam, Grass Knot

@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "id": "ch4rybd3.pokemagotchi",
   "name": "Pokemagotchi",
-  "version": "9.0.0",
+  "version": "10.0.0",
   "author": "Ch4rybd3",
-  "description": "A tiny Pokémon tamagotchi for your bar: raise, catch, box, train and evolve all 905 Pokémon, and send teams on Mystery Dungeon-style expeditions",
+  "description": "A tiny Pokémon tamagotchi for your bar: raise, catch, box, train and evolve all 905 Pokémon, send teams on Mystery Dungeon-style expeditions and take on Gym Leaders at a Battle Tower powered by Pokémon Showdown",
   "kinds": [
     "bar-widget"
   ],

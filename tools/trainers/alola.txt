@@ -1,0 +1,104 @@
+# Alola Tower: Trial Captains, Kahunas, the Elite Four and the Champions,
+# in the spirit of Sun/Moon and Ultra Sun/Ultra Moon.
+# == Class / Name | tier N | rating 1-10 | ai 1-4 [| boss]
+# Species @ Item | Ability | Nature | EVs | Moves  (empty EVs = 84 in every stat)
+
+# ---- Tier 1: Novice (first island) ----
+
+== Trial Captain / Ilima | tier 1 | rating 2 | ai 1
+Yungoos @ Oran Berry | Stakeout | Adamant | | Bite, Pursuit, Sand Attack, Super Fang
+Smeargle | Own Tempo | Jolly | | Spore, Fake Out, Sketch, Spiky Shield
+Komala | Comatose | Adamant | | Wood Hammer, Sucker Punch, Rapid Spin, Yawn
+Gumshoos @ Sitrus Berry | Stakeout | Adamant | | Bite, Pursuit, Crunch, Super Fang
+
+== Trial Captain / Lana | tier 1 | rating 2 | ai 1
+Wishiwashi @ Oran Berry | Schooling | Modest | | Water Gun, Brine, Helping Hand, Growl
+Dewpider | Water Bubble | Adamant | | Bug Bite, Bubble Beam, Infestation, Spider Web
+Lanturn | Volt Absorb | Modest | | Bubble Beam, Spark, Confuse Ray, Thunder Wave
+Araquanid @ Sitrus Berry | Water Bubble | Adamant | | Bubble Beam, Bug Bite, Bite, Aqua Ring
+
+== Trial Captain / Kiawe | tier 1 | rating 3 | ai 2
+Salandit @ Oran Berry | Corrosion | Timid | | Ember, Poison Gas, Double Slap, Smog
+Marowak-Alola | Cursed Body | Adamant | | Flame Wheel, Shadow Bone, Bonemerang, Will-O-Wisp
+Turtonator | Shell Armor | Modest | | Incinerate, Dragon Pulse, Shell Trap, Smog
+Arcanine @ Sitrus Berry | Intimidate | Adamant | | Fire Fang, Bite, Roar, Take Down
+
+== Kahuna / Hala | tier 1 | rating 3 | ai 2 | boss
+Mankey | Vital Spirit | Jolly | | Karate Chop, Pursuit, Leer, Seismic Toss
+Makuhita | Thick Fat | Adamant | | Arm Thrust, Fake Out, Sand Attack, Knock Off
+Crabrawler | Hyper Cutter | Adamant | | Power-Up Punch, Bubble Beam, Pursuit, Leer
+Hariyama @ Sitrus Berry | Thick Fat | Adamant | | Arm Thrust, Fake Out, Knock Off, Bulk Up
+
+# ---- Tier 2: Ace (the other islands) ----
+
+== Trial Captain / Mallow | tier 2 | rating 4 | ai 2
+Steenee | Leaf Guard | Jolly | | Magical Leaf, Double Slap, Rapid Spin, Play Nice
+Shiinotic | Effect Spore | Calm | | Moonblast, Giga Drain, Spore, Moonlight
+Lurantis | Contrary | Adamant | | Leaf Blade, X-Scissor, Superpower, Synthesis
+Tsareena @ Sitrus Berry | Queenly Majesty | Jolly | | Trop Kick, High Jump Kick, U-turn, Rapid Spin
+
+== Trial Captain / Sophocles | tier 2 | rating 4 | ai 2
+Togedemaru | Iron Barbs | Jolly | | Zing Zap, Spiky Shield, Nuzzle, U-turn
+Golem-Alola | Galvanize | Adamant | | Double-Edge, Rock Slide, Earthquake, Stealth Rock
+Magnezone | Sturdy | Modest | | Thunderbolt, Flash Cannon, Volt Switch, Thunder Wave
+Vikavolt @ Sitrus Berry | Levitate | Modest | | Bug Buzz, Thunderbolt, Energy Ball, Sticky Web
+
+== Kahuna / Nanu | tier 2 | rating 5 | ai 3
+Sableye | Prankster | Careful | | Foul Play, Will-O-Wisp, Recover, Fake Out
+Persian-Alola | Fur Coat | Timid | | Dark Pulse, Power Gem, Nasty Plot, Hypnosis
+Honchkrow | Super Luck | Adamant | | Night Slash, Brave Bird, Sucker Punch, Heat Wave
+Krookodile @ Sitrus Berry | Intimidate | Adamant | | Earthquake, Crunch, Stone Edge, Bulk Up
+
+== Kahuna / Hapu | tier 2 | rating 5 | ai 3 | boss
+Dugtrio-Alola | Tangling Hair | Jolly | | Earthquake, Iron Head, Sucker Punch, Stealth Rock
+Gastrodon | Storm Drain | Bold | | Earth Power, Scald, Recover, Toxic
+Flygon | Levitate | Jolly | | Earthquake, Dragon Claw, U-turn, Fire Punch
+Mudsdale @ Sitrus Berry | Stamina | Adamant | | High Horsepower, Heavy Slam, Close Combat, Rock Slide
+
+# ---- Tier 3: Elite (Elite Four) ----
+
+== Elite Four / Molayne | tier 3 | rating 6 | ai 3
+Klefki @ Leftovers | Prankster | Bold | 252 HP / 252 Def / 4 SpD | Flash Cannon, Thunder Wave, Spikes, Foul Play
+Bisharp @ Life Orb | Defiant | Adamant | 252 Atk / 4 Def / 252 Spe | Iron Head, Sucker Punch, Knock Off, Swords Dance
+Magnezone @ Choice Specs | Magnet Pull | Modest | 252 HP / 252 SpA / 4 SpD | Thunderbolt, Flash Cannon, Volt Switch, Hidden Power
+Metagross @ Sitrus Berry | Clear Body | Adamant | 252 HP / 252 Atk / 4 Def | Meteor Mash, Zen Headbutt, Earthquake, Bullet Punch
+Dugtrio-Alola @ Focus Sash | Tangling Hair | Jolly | 252 Atk / 4 Def / 252 Spe | Earthquake, Iron Head, Sucker Punch, Stone Edge
+
+== Elite Four / Olivia | tier 3 | rating 6 | ai 3
+Relicanth @ Leftovers | Rock Head | Adamant | 252 HP / 252 Atk / 4 Def | Head Smash, Waterfall, Earthquake, Stealth Rock
+Carbink @ Light Clay | Sturdy | Bold | 252 HP / 252 Def / 4 SpD | Moonblast, Power Gem, Reflect, Light Screen
+Golem-Alola @ Sitrus Berry | Galvanize | Adamant | 252 HP / 252 Atk / 4 Def | Double-Edge, Stone Edge, Earthquake, Explosion
+Probopass @ Leftovers | Magnet Pull | Modest | 252 HP / 252 SpA / 4 SpD | Power Gem, Flash Cannon, Earth Power, Thunder Wave
+Lycanroc-Midnight @ Life Orb | No Guard | Adamant | 252 Atk / 4 Def / 252 Spe | Stone Edge, Close Combat, Crunch, Swords Dance
+
+== Elite Four / Acerola | tier 3 | rating 7 | ai 3
+Sableye @ Leftovers | Prankster | Careful | 252 HP / 4 Atk / 252 SpD | Foul Play, Will-O-Wisp, Recover, Taunt
+Froslass @ Focus Sash | Cursed Body | Timid | 4 HP / 252 SpA / 252 Spe | Blizzard, Shadow Ball, Spikes, Destiny Bond
+Drifblim @ Sitrus Berry | Unburden | Calm | 252 HP / 4 SpA / 252 SpD | Shadow Ball, Will-O-Wisp, Calm Mind, Recycle
+Dhelmise @ Choice Band | Steelworker | Adamant | 252 HP / 252 Atk / 4 SpD | Anchor Shot, Power Whip, Poltergeist, Earthquake
+Palossand @ Leftovers | Water Compaction | Modest | 252 HP / 252 SpA / 4 SpD | Shadow Ball, Earth Power, Shore Up, Stealth Rock
+
+== Elite Four / Kahili | tier 3 | rating 7 | ai 4 | boss
+Skarmory @ Rocky Helmet | Sturdy | Impish | 252 HP / 252 Def / 4 SpD | Brave Bird, Spikes, Roost, Whirlwind
+Crobat @ Sitrus Berry | Infiltrator | Jolly | 252 Atk / 4 Def / 252 Spe | Brave Bird, Cross Poison, U-turn, Taunt
+Oricorio @ Leftovers | Dancer | Timid | 252 HP / 4 SpA / 252 Spe | Revelation Dance, Hurricane, Quiver Dance, Roost
+Mandibuzz @ Leftovers | Overcoat | Impish | 252 HP / 4 Atk / 252 Def | Foul Play, Roost, Toxic, U-turn
+Toucannon @ Choice Band | Skill Link | Adamant | 252 HP / 252 Atk / 4 Def | Beak Blast, Bullet Seed, Rock Blast, Knock Off
+
+# ---- Tier 4: Master (Champions) ----
+
+== Professor / Kukui | tier 4 | rating 9 | ai 4 | boss
+Lycanroc @ Focus Sash | Sand Rush | Jolly | 252 Atk / 4 Def / 252 Spe | Accelerock, Stone Edge, Close Combat, Swords Dance
+Ninetales-Alola @ Light Clay | Snow Warning | Timid | 4 HP / 252 SpA / 252 Spe | Blizzard, Dazzling Gleam, Aurora Veil, Freeze-Dry
+Braviary @ Choice Scarf | Sheer Force | Jolly | 252 Atk / 4 Def / 252 Spe | Brave Bird, Close Combat, U-turn, Rock Slide
+Magnezone @ Air Balloon | Sturdy | Modest | 252 HP / 252 SpA / 4 SpD | Thunderbolt, Flash Cannon, Volt Switch, Hidden Power
+Snorlax @ Leftovers | Thick Fat | Careful | 252 HP / 4 Atk / 252 SpD | Body Slam, Curse, Rest, Earthquake
+Incineroar @ Sitrus Berry | Intimidate | Adamant | 252 HP / 252 Atk / 4 SpD | Flare Blitz, Darkest Lariat, Fake Out, U-turn
+
+== Pokémon Trainer / Hau | tier 4 | rating 8 | ai 4 | boss
+Raichu-Alola @ Life Orb | Surge Surfer | Timid | 4 HP / 252 SpA / 252 Spe | Thunderbolt, Psychic, Focus Blast, Nasty Plot
+Tauros @ Choice Band | Sheer Force | Jolly | 252 Atk / 4 Def / 252 Spe | Double-Edge, Earthquake, Rock Slide, Zen Headbutt
+Noivern @ Sitrus Berry | Infiltrator | Timid | 4 HP / 252 SpA / 252 Spe | Boomburst, Draco Meteor, Hurricane, Roost
+Vaporeon @ Leftovers | Water Absorb | Bold | 252 HP / 252 Def / 4 SpD | Scald, Wish, Protect, Ice Beam
+Crabominable @ Lum Berry | Iron Fist | Adamant | 252 HP / 252 Atk / 4 Def | Ice Hammer, Drain Punch, Earthquake, Thunder Punch
+Decidueye @ Life Orb | Long Reach | Adamant | 252 Atk / 4 Def / 252 Spe | Spirit Shackle, Leaf Blade, Sucker Punch, Swords Dance

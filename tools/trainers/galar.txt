@@ -1,0 +1,103 @@
+# Galar Tower: in the spirit of Sword/Shield and its DLC.
+# == Class / Name | tier N | rating 1-10 | ai 1-4 [| boss]
+# Species @ Item | Ability | Nature | EVs | Moves  (empty EVs = 84 in every stat)
+
+# ---- Tier 1: Novice (Gyms 1-4) ----
+
+== Gym Leader / Milo | tier 1 | rating 2 | ai 1
+Gossifleur @ Oran Berry | Cotton Down | Modest | | Magical Leaf, Rapid Spin, Sweet Scent, Round
+Bounsweet | Leaf Guard | Adamant | | Razor Leaf, Rapid Spin, Play Nice, Splash
+Nickit | Unburden | Jolly | | Quick Attack, Thief, Snarl, Tail Whip
+Eldegoss @ Sitrus Berry | Cotton Down | Modest | | Magical Leaf, Round, Cotton Spore, Synthesis
+
+== Gym Leader / Nessa | tier 1 | rating 2 | ai 1
+Goldeen @ Oran Berry | Swift Swim | Adamant | | Horn Attack, Water Pulse, Agility, Supersonic
+Arrokuda | Swift Swim | Jolly | | Aqua Jet, Bite, Water Pulse, Fury Attack
+Chewtle | Strong Jaw | Adamant | | Bite, Water Gun, Headbutt, Protect
+Drednaw @ Sitrus Berry | Strong Jaw | Adamant | | Rock Tomb, Bite, Razor Shell, Protect
+
+== Gym Leader / Kabu | tier 1 | rating 3 | ai 2
+Sizzlipede @ Oran Berry | Flash Fire | Adamant | | Flame Wheel, Bug Bite, Smokescreen, Coil
+Ninetales | Flash Fire | Timid | | Will-O-Wisp, Quick Attack, Ember, Hex
+Arcanine | Intimidate | Adamant | | Fire Fang, Bite, Agility, Roar
+Centiskorch @ Sitrus Berry | Flash Fire | Adamant | | Fire Lash, Bug Bite, Coil, Bite
+
+== Gym Leader / Bea | tier 1 | rating 3 | ai 2 | boss
+Hitmontop | Intimidate | Adamant | | Triple Kick, Rapid Spin, Fake Out, Revenge
+Pangoro | Iron Fist | Adamant | | Karate Chop, Crunch, Circle Throw, Work Up
+Sirfetch'd | Steadfast | Adamant | | Revenge, Rock Smash, Fury Cutter, Detect
+Machamp @ Sitrus Berry | Guts | Adamant | | Power-Up Punch, Knock Off, Rock Slide, Bulk Up
+
+# ---- Tier 2: Ace (Gyms 5-8) ----
+
+== Gym Leader / Opal | tier 2 | rating 4 | ai 2
+Weezing-Galar | Neutralizing Gas | Bold | | Strange Steam, Fairy Wind, Will-O-Wisp, Toxic
+Mawile | Intimidate | Adamant | | Play Rough, Iron Head, Sucker Punch, Swords Dance
+Togekiss | Serene Grace | Timid | | Air Slash, Dazzling Gleam, Aura Sphere, Roost
+Alcremie @ Sitrus Berry | Sweet Veil | Modest | | Dazzling Gleam, Psyshock, Mystical Fire, Calm Mind
+
+== Gym Leader / Gordie | tier 2 | rating 4 | ai 2
+Barbaracle | Tough Claws | Adamant | | Rock Slide, Razor Shell, Cross Chop, Shell Smash
+Shuckle | Sturdy | Bold | | Rock Slide, Sticky Web, Toxic, Rest
+Stonjourner | Power Spot | Adamant | | Rock Slide, Heat Crash, Body Press, Stealth Rock
+Coalossal @ Sitrus Berry | Steam Engine | Quiet | | Heat Wave, Tar Shot, Rock Slide, Stealth Rock
+
+== Gym Leader / Piers | tier 2 | rating 5 | ai 3
+Scrafty | Intimidate | Careful | | Drain Punch, Knock Off, Fake Out, Bulk Up
+Malamar | Contrary | Adamant | | Superpower, Knock Off, Psycho Cut, Rest
+Skuntank | Aftermath | Adamant | | Sucker Punch, Poison Jab, Crunch, Fire Blast
+Obstagoon @ Sitrus Berry | Guts | Adamant | | Obstruct, Throat Chop, Close Combat, Gunk Shot
+
+== Gym Leader / Raihan | tier 2 | rating 5 | ai 3 | boss
+Flygon | Levitate | Jolly | | Earthquake, Dragon Claw, U-turn, Fire Punch
+Gigalith | Sand Stream | Adamant | | Rock Slide, Earthquake, Body Press, Stealth Rock
+Sandaconda | Sand Spit | Adamant | | Earthquake, Rock Slide, Coil, Glare
+Duraludon @ Sitrus Berry | Light Metal | Modest | | Flash Cannon, Dragon Pulse, Thunderbolt, Body Press
+
+# ---- Tier 3: Elite (Champion Cup) ----
+
+== Pokémon Trainer / Marnie | tier 3 | rating 6 | ai 3
+Liepard @ Focus Sash | Prankster | Jolly | 252 Atk / 4 Def / 252 Spe | Knock Off, Fake Out, Thunder Wave, Encore
+Toxicroak @ Black Sludge | Dry Skin | Jolly | 252 Atk / 4 Def / 252 Spe | Gunk Shot, Drain Punch, Sucker Punch, Swords Dance
+Scrafty @ Leftovers | Intimidate | Careful | 252 HP / 4 Atk / 252 SpD | Drain Punch, Knock Off, Bulk Up, Fake Out
+Morpeko @ Choice Scarf | Hunger Switch | Jolly | 252 Atk / 4 Def / 252 Spe | Aura Wheel, Knock Off, Rapid Spin, Parting Shot
+Grimmsnarl @ Light Clay | Prankster | Careful | 252 HP / 4 Atk / 252 SpD | Spirit Break, Reflect, Light Screen, Thunder Wave
+
+== Gym Leader / Bede | tier 3 | rating 6 | ai 3
+Mawile @ Choice Band | Intimidate | Adamant | 252 HP / 252 Atk / 4 Def | Play Rough, Iron Head, Sucker Punch, Fire Fang
+Gardevoir @ Life Orb | Trace | Timid | 4 HP / 252 SpA / 252 Spe | Moonblast, Psychic, Mystical Fire, Calm Mind
+Rapidash-Galar @ Sitrus Berry | Pastel Veil | Jolly | 252 Atk / 4 Def / 252 Spe | Play Rough, Zen Headbutt, High Horsepower, Swords Dance
+Hatterene @ Leftovers | Magic Bounce | Quiet | 252 HP / 252 SpA / 4 Def | Psychic, Dazzling Gleam, Mystical Fire, Trick Room
+Sylveon @ Leftovers | Pixilate | Calm | 252 HP / 4 Def / 252 SpD | Hyper Voice, Wish, Protect, Calm Mind
+
+== Gym Leader / Allister | tier 3 | rating 7 | ai 3
+Mimikyu @ Life Orb | Disguise | Jolly | 252 Atk / 4 Def / 252 Spe | Play Rough, Shadow Claw, Shadow Sneak, Swords Dance
+Gengar @ Focus Sash | Cursed Body | Timid | 4 HP / 252 SpA / 252 Spe | Shadow Ball, Sludge Wave, Focus Blast, Will-O-Wisp
+Cursola @ Focus Sash | Perish Body | Modest | 252 HP / 252 SpA / 4 SpD | Shadow Ball, Power Gem, Earth Power, Strength Sap
+Polteageist @ White Herb | Weak Armor | Modest | 4 HP / 252 SpA / 252 Spe | Shell Smash, Shadow Ball, Giga Drain, Stored Power
+Dusknoir @ Leftovers | Frisk | Impish | 252 HP / 4 Atk / 252 Def | Poltergeist, Earthquake, Will-O-Wisp, Pain Split
+
+== Rival / Hop | tier 3 | rating 7 | ai 4 | boss
+Dubwool @ Leftovers | Fluffy | Impish | 252 HP / 4 Atk / 252 Def | Body Press, Cotton Guard, Double-Edge, Wild Charge
+Corviknight @ Leftovers | Mirror Armor | Impish | 252 HP / 4 Atk / 252 Def | Brave Bird, Body Press, Bulk Up, Roost
+Pincurchin @ Sitrus Berry | Electric Surge | Adamant | 252 HP / 252 Atk / 4 Def | Zing Zap, Liquidation, Spikes, Sucker Punch
+Snorlax @ Leftovers | Thick Fat | Careful | 252 HP / 4 Atk / 252 SpD | Body Slam, Heavy Slam, Curse, Rest
+Rillaboom @ Choice Band | Overgrow | Adamant | 252 Atk / 4 Def / 252 Spe | Wood Hammer, Knock Off, U-turn, High Horsepower
+
+# ---- Tier 4: Master (Champions) ----
+
+== Champion / Leon | tier 4 | rating 9 | ai 4 | boss
+Aegislash @ Weakness Policy | Stance Change | Quiet | 252 HP / 252 SpA / 4 Atk | Shadow Ball, Flash Cannon, King's Shield, Sacred Sword
+Dragapult @ Choice Specs | Infiltrator | Timid | 4 HP / 252 SpA / 252 Spe | Draco Meteor, Shadow Ball, Flamethrower, U-turn
+Haxorus @ Lum Berry | Mold Breaker | Jolly | 252 Atk / 4 Def / 252 Spe | Outrage, Earthquake, Close Combat, Dragon Dance
+Seismitoad @ Leftovers | Water Absorb | Modest | 252 HP / 252 SpA / 4 SpD | Scald, Earth Power, Sludge Wave, Stealth Rock
+Mr. Rime @ Life Orb | Screen Cleaner | Timid | 4 HP / 252 SpA / 252 Spe | Freeze-Dry, Psychic, Focus Blast, Rapid Spin
+Charizard @ Heavy-Duty Boots | Solar Power | Timid | 4 HP / 252 SpA / 252 Spe | Fire Blast, Air Slash, Focus Blast, Roost
+
+== Dojo Master / Mustard | tier 4 | rating 9 | ai 4 | boss
+Urshifu-Rapid-Strike @ Choice Band | Unseen Fist | Jolly | 252 Atk / 4 Def / 252 Spe | Surging Strikes, Close Combat, U-turn, Aqua Jet
+Kommo-o @ Throat Spray | Bulletproof | Timid | 4 HP / 252 SpA / 252 Spe | Clangorous Soul, Clanging Scales, Aura Sphere, Flamethrower
+Falinks @ Sitrus Berry | Defiant | Jolly | 252 Atk / 4 Def / 252 Spe | No Retreat, Close Combat, Iron Head, Throat Chop
+Luxray @ Choice Scarf | Intimidate | Jolly | 252 Atk / 4 Def / 252 Spe | Wild Charge, Ice Fang, Crunch, Volt Switch
+Cloyster @ White Herb | Skill Link | Jolly | 252 Atk / 4 Def / 252 Spe | Shell Smash, Icicle Spear, Rock Blast, Liquidation
+Corviknight @ Rocky Helmet | Pressure | Impish | 252 HP / 4 Atk / 252 Def | Brave Bird, Body Press, Iron Defense, Roost

@@ -150,7 +150,8 @@ var COMMON_LOOT = {
   "full-heal": 2, "lum-berry": 0.8, "revive": 1, "max-revive": 0.2, "escape-rope": 0.8,
   "poke-ball": 4, "great-ball": 2, "ultra-ball": 0.6,
   "oran-berry": 2, "sitrus-berry": 1, "exp-candy-xs": 3, "exp-candy-s": 2, "exp-candy-m": 1, "exp-candy-l": 0.4,
-  "rare-candy": 0.3, "bottle-cap": 0.1
+  "rare-candy": 0.3, "bottle-cap": 0.1,
+  "tm": 3                             // a TM, rolled by rarity (Pet.rollTm)
 }
 var BIOME_LOOT_WEIGHT = 2.5         // each biome item, next to the common ones
 
@@ -336,7 +337,8 @@ function loot(X, id, n) {
 function lootRoll(X, biomeShare) {
   var b = BIOMES[X.x.biome]
   if (X.rand() < (biomeShare === undefined ? 0.3 : biomeShare)) return b.loot[Math.floor(X.rand() * b.loot.length)]
-  return pickObj(X.rand, COMMON_LOOT)
+  var id = pickObj(X.rand, COMMON_LOOT)
+  return id === "tm" ? Pet.rollTm(X.rand) : id
 }
 
 function provision(x, kind) {
@@ -1331,9 +1333,11 @@ function hints(save, biome, team) {
 
 function cap(t) { return t.charAt(0).toUpperCase() + t.slice(1) }
 
-// Roots that can go: at the Day Care (or your partner) and not already away.
+// Roots that can go: at the Day Care (or your partner), not already away and
+// not in the middle of a Battle Tower challenge.
 function available(save) {
-  return Pet.ownedRoots(save).filter(function(r) { return !Pet.isAway(save, r) })
+  var run = save.tower && save.tower.run
+  return Pet.ownedRoots(save).filter(function(r) { return !Pet.isAway(save, r) && !(run && run.refs.indexOf(r) >= 0) })
 }
 
 // A sensible bag for this trip: food for the floors, potions, some PP,

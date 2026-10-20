@@ -5,6 +5,7 @@ import qs.Commons
 import qs.Ui
 import "Pet.js" as Pet
 import "Expedition.js" as Exp
+import "Tower.js" as Tower
 
 BarWidget {
   id: root
@@ -38,7 +39,7 @@ BarWidget {
   readonly property bool expeditionNews: expeditions.some(function(x) { return x.status === "done" && !x.seen })
 
   // "pet" | "menu" | "picker" | "box" | "confirm" | "evolve" | "encounter" | "found" | "bag"
-  // | "info" | "moves" | "relearn" | "daycare" | "train" | "expedition" | "shop"
+  // | "info" | "moves" | "relearn" | "tms" | "daycare" | "train" | "expedition" | "shop"
   property string mode: "pet"
   property string message: ""
   property string query: ""
@@ -73,6 +74,7 @@ BarWidget {
   // Moves page: the move shown in detail, and a move waiting for a slot to replace
   property int moveSlot: -1
   property int relearnId: 0
+  property string pendingTm: ""       // the TM being taught, while choosing the move it replaces
   readonly property var ownedRoots: Pet.ownedRoots(view)
   // Who plays in the Day Care field: its members, plus anyone training at the doll
   readonly property var daycareWalkers: ownedRoots.filter(function(r) {
@@ -202,6 +204,7 @@ BarWidget {
   function openMoves() {
     moveSlot = -1
     relearnId = 0
+    pendingTm = ""
     message = ""
     mode = "moves"
   }
@@ -215,11 +218,27 @@ BarWidget {
   }
 
   function teach(id, slot) {
-    var r = infoRef
-    message = mutate(function(s) { return Pet.relearn(s, r, id, slot) })
+    var r = infoRef, tm = pendingTm
+    message = mutate(function(s) { return tm ? Pet.teachTm(s, r, tm, slot) : Pet.relearn(s, r, id, slot) })
+    pendingTm = ""
     relearnId = 0
     moveSlot = -1
     mode = "moves"
+  }
+
+  // A TM from the bag: taught at once if there's a free slot, else pick the move to forget.
+  function pickTm(tm) {
+    pendingTm = tm
+    if ((infoPet.moves || []).length < Pet.MAX_MOVES) { teach(Pet.tmMove(tm), -1); return }
+    relearnId = Pet.tmMove(tm)
+    moveSlot = -1
+    message = ""
+    mode = "moves"
+  }
+
+  function openTower() {
+    close()
+    towerWindow.open()
   }
 
   function restart() {
@@ -473,6 +492,7 @@ BarWidget {
     }
     else if (id === "expeditions") openExpeditions("new")
     else if (id === "history") openExpeditions("history")
+    else if (id === "tower") openTower()
     else if (id === "summary") { if (hasPet) showInfo(view.current, "pet") }
   }
 
@@ -561,6 +581,11 @@ BarWidget {
 
   ExpeditionWindow {
     id: expeditionWindow
+    host: root
+  }
+
+  TowerWindow {
+    id: towerWindow
     host: root
   }
 
@@ -745,7 +770,7 @@ BarWidget {
     open: root.opened
     focusTarget: root.mode === "picker" ? searchField : null
     contentWidth: popup.fittedContentWidth(Style.space(root.mode === "daycare" ? 560
-                                                     : ["info", "box", "moves", "relearn", "expedition", "shop", "menu"].indexOf(root.mode) >= 0 ? 400
+                                                     : ["info", "box", "moves", "relearn", "tms", "expedition", "shop", "menu"].indexOf(root.mode) >= 0 ? 400
                                                      : root.mode === "bag" ? 340 : 300))
     contentHeight: popup.fittedContentHeight(content.implicitHeight)
 
@@ -769,7 +794,7 @@ BarWidget {
                : root.mode === "shop" ? "SHOP"
                : root.mode === "picker" ? "POKÉDEX"
                : root.mode === "box" ? Pet.name(root.boxRoot).toUpperCase() + " BOX"
-               : (root.mode === "moves" || root.mode === "relearn") && root.infoPet ? Pet.name(root.infoPet.species).toUpperCase()
+               : (root.mode === "moves" || root.mode === "relearn" || root.mode === "tms") && root.infoPet ? Pet.name(root.infoPet.species).toUpperCase()
                : root.mode === "bag" ? "BAG"
                : root.mode === "found" ? "EXPLORE"
                : root.mode === "encounter" ? Pet.name(root.wildSlug).toUpperCase()
@@ -808,6 +833,7 @@ BarWidget {
               : root.mode === "box" ? Pet.familyCount(root.view, root.boxRoot) + " / " + Pet.BOX_SIZE
               : root.mode === "moves" ? "Moves"
               : root.mode === "relearn" ? "Move Reminder"
+              : root.mode === "tms" ? "TMs"
               : root.mode === "bag" ? Pet.bagItems(root.view).length + (Pet.bagItems(root.view).length === 1 ? " item" : " items")
               : root.mode === "encounter" ? "Lv. " + root.wildLevel
               : root.mode === "found" ? ""
@@ -878,7 +904,9 @@ BarWidget {
               { id: "expeditions", label: "Expeditions", item: "escape-rope", tint: "#4a86b8",
                 badge: Exp.active(root.view).length + "/" + Exp.slots(root.view), news: root.expeditionNews },
               { id: "history", label: "Exp. history", glyph: "☰", tint: "#5a6aa8", badge: Exp.rank(root.view).name },
-              { id: "summary", label: "Summary", glyph: "◉", tint: "#9a5aa8" }
+              { id: "summary", label: "Summary", glyph: "◉", tint: "#9a5aa8" },
+              { id: "tower", label: "Battle Tower", item: "choice-band", tint: "#c0504d",
+                badge: Tower.bp(root.view) + " BP", news: !!Tower.run(root.view) }
             ]
 
             delegate: Item {
@@ -1897,11 +1925,12 @@ BarWidget {
       // ---- Moves: the four it knows, and the Move Reminder ----
       Column {
         id: movesView
-        visible: (root.mode === "moves" || root.mode === "relearn") && !!root.infoPet
+        visible: (root.mode === "moves" || root.mode === "relearn" || root.mode === "tms") && !!root.infoPet
         width: parent.width
         spacing: Style.space(6)
         readonly property var known: movesView.visible ? Pet.moves(root.infoPet) : []
         readonly property var others: movesView.visible ? Pet.relearnable(root.infoPet) : []
+        readonly property var tms: movesView.visible ? Pet.tmsFor(root.view, root.infoPet) : []
         readonly property var detail: root.mode === "moves" && root.moveSlot >= 0 ? known[root.moveSlot] || null : null
 
         Caption {
@@ -1977,6 +2006,57 @@ BarWidget {
           }
         }
 
+        Caption {
+          visible: root.mode === "tms"
+          width: parent.width
+          wrapMode: Text.WordWrap
+          text: movesView.tms.length
+            ? "Pick a TM from your bag. It's used up, but the move stays at the Move Reminder."
+            : "None of your TMs can teach it something new. TMs turn up in searches, on expeditions and at the shop."
+        }
+
+        Flickable {
+          visible: root.mode === "tms"
+          width: parent.width
+          height: Math.min(contentHeight, Style.space(300))
+          contentHeight: tmColumn.implicitHeight
+          clip: true
+          boundsBehavior: Flickable.StopAtBounds
+
+          Column {
+            id: tmColumn
+            width: parent.width
+            spacing: Style.space(6)
+
+            Repeater {
+              model: root.mode === "tms" ? movesView.tms : []
+              delegate: Item {
+                required property var modelData
+                width: tmColumn.width
+                height: tmCard.height
+                MoveCard {
+                  id: tmCard
+                  width: parent.width - tmTag.width - Style.space(6)
+                  move: Pet.move(Pet.tmMove(modelData))
+                  onClicked: root.pickTm(modelData)
+                }
+                Text {
+                  id: tmTag
+                  anchors.right: parent.right
+                  anchors.verticalCenter: parent.verticalCenter
+                  width: Style.space(58)
+                  horizontalAlignment: Text.AlignRight
+                  text: modelData.toUpperCase() + "\n×" + (root.view.bag[modelData] || 0)
+                  color: Color.popups.text
+                  opacity: 0.7
+                  font.family: Style.font.family
+                  font.pixelSize: Style.space(10)
+                }
+              }
+            }
+          }
+        }
+
         Text {
           visible: root.message !== ""
           width: parent.width
@@ -1992,22 +2072,30 @@ BarWidget {
           id: movesButtons
           width: parent.width
           spacing: Style.space(8)
-          readonly property real half: (width - spacing) / 2
+          readonly property real third: (width - spacing * 2) / 3
+          readonly property bool picking: root.mode === "relearn" || root.mode === "tms" || root.relearnId > 0
 
           PetButton {
-            width: movesButtons.half
-            label: root.mode === "relearn" || root.relearnId > 0 ? "Cancel" : "Summary"
+            width: movesButtons.third
+            label: movesButtons.picking ? "Cancel" : "Summary"
             onClicked: {
-              if (root.mode === "relearn" || root.relearnId > 0) root.openMoves()
+              if (movesButtons.picking) root.openMoves()
               else root.showInfo(root.infoRef, root.infoBack)
             }
           }
           PetButton {
-            width: movesButtons.half
+            width: movesButtons.third
             highlight: root.mode === "moves"
             enabledLook: root.mode === "moves" && root.relearnId === 0
             label: "Move Reminder"
             onClicked: if (root.mode === "moves" && root.relearnId === 0) { root.message = ""; root.mode = "relearn" }
+          }
+          PetButton {
+            width: movesButtons.third
+            highlight: root.mode === "moves" && movesView.tms.length > 0
+            enabledLook: root.mode === "moves" && root.relearnId === 0
+            label: "TMs" + (movesView.tms.length ? " (" + movesView.tms.length + ")" : "")
+            onClicked: if (root.mode === "moves" && root.relearnId === 0) { root.message = ""; root.mode = "tms" }
           }
         }
       }
@@ -2969,7 +3057,7 @@ BarWidget {
       // ---- Scene ----
       Rectangle {
         id: scene
-        visible: ["picker", "box", "bag", "info", "moves", "relearn", "daycare", "train", "expedition", "menu", "shop"].indexOf(root.mode) < 0
+        visible: ["picker", "box", "bag", "info", "moves", "relearn", "tms", "daycare", "train", "expedition", "menu", "shop"].indexOf(root.mode) < 0
         width: parent.width
         height: Style.space(170)
         radius: Style.cornerRadius
@@ -3317,7 +3405,7 @@ BarWidget {
       }
 
       Text {
-        visible: ["picker", "box", "bag", "info", "moves", "relearn", "daycare", "train", "expedition", "menu", "shop"].indexOf(root.mode) < 0
+        visible: ["picker", "box", "bag", "info", "moves", "relearn", "tms", "daycare", "train", "expedition", "menu", "shop"].indexOf(root.mode) < 0
         width: parent.width
         text: root.mode === "confirm"
           ? "Release " + root.speciesName + " and start over with a new " + Pet.name(root.view.current) + "?"

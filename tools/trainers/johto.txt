@@ -1,0 +1,103 @@
+# Johto Tower: in the spirit of Gold/Silver/Crystal, HeartGold/SoulSilver and the PWT.
+# == Class / Name | tier N | rating 1-10 | ai 1-4 [| boss]
+# Species @ Item | Ability | Nature | EVs | Moves  (empty EVs = 84 in every stat)
+
+# ---- Tier 1: Novice (Gyms 1-4) ----
+
+== Gym Leader / Falkner | tier 1 | rating 2 | ai 1
+Pidgeotto @ Oran Berry | Keen Eye | Jolly | | Wing Attack, Quick Attack, Roost, Mud-Slap
+Hoothoot | Insomnia | Modest | | Hypnosis, Confusion, Peck, Echoed Voice
+Spearow | Keen Eye | Jolly | | Fury Attack, Aerial Ace, Pursuit, Leer
+Noctowl @ Sitrus Berry | Insomnia | Modest | | Air Slash, Extrasensory, Hypnosis, Reflect
+
+== Gym Leader / Bugsy | tier 1 | rating 2 | ai 1
+Ledyba @ Oran Berry | Swarm | Jolly | | Bug Bite, Supersonic, Light Screen, Reflect
+Spinarak | Swarm | Adamant | | Poison Sting, Night Shade, Bug Bite, Scary Face
+Yanma | Speed Boost | Timid | | Quick Attack, Bug Buzz, Double Team, Supersonic
+Scyther @ Sitrus Berry | Technician | Adamant | | Fury Cutter, Quick Attack, Wing Attack, U-turn
+
+== Gym Leader / Whitney | tier 1 | rating 3 | ai 2
+Clefairy @ Oran Berry | Cute Charm | Bold | | Disarming Voice, Encore, Sing, Metronome
+Snubbull | Intimidate | Adamant | | Bite, Charm, Headbutt, Scary Face
+Girafarig | Inner Focus | Modest | | Psybeam, Stomp, Agility, Double Hit
+Miltank @ Sitrus Berry | Thick Fat | Adamant | | Rollout, Stomp, Milk Drink, Attract
+
+== Gym Leader / Morty | tier 1 | rating 3 | ai 2 | boss
+Gastly | Levitate | Timid | | Lick, Hypnosis, Curse, Night Shade
+Haunter @ Oran Berry | Levitate | Timid | | Hex, Hypnosis, Night Shade, Confuse Ray
+Misdreavus | Levitate | Calm | | Hex, Psybeam, Confuse Ray, Pain Split
+Gengar @ Sitrus Berry | Cursed Body | Timid | | Shadow Ball, Sludge Bomb, Hypnosis, Dream Eater
+
+# ---- Tier 2: Ace (Gyms 5-8) ----
+
+== Gym Leader / Chuck | tier 2 | rating 4 | ai 2
+Poliwrath @ Sitrus Berry | Water Absorb | Adamant | | Waterfall, Brick Break, Hypnosis, Ice Punch
+Primeape | Defiant | Jolly | | Close Combat, U-turn, Rock Slide, Bulk Up
+Hitmontop | Intimidate | Adamant | | Close Combat, Sucker Punch, Rapid Spin, Fake Out
+Machamp @ Black Belt | Guts | Adamant | | Cross Chop, Knock Off, Bullet Punch, Rock Slide
+
+== Gym Leader / Jasmine | tier 2 | rating 4 | ai 2
+Magneton @ Magnet | Sturdy | Modest | | Thunderbolt, Flash Cannon, Thunder Wave, Volt Switch
+Skarmory | Sturdy | Impish | | Steel Wing, Drill Peck, Spikes, Roost
+Ampharos @ Leftovers | Static | Modest | | Thunderbolt, Dragon Pulse, Power Gem, Thunder Wave
+Steelix @ Sitrus Berry | Sturdy | Adamant | | Iron Tail, Earthquake, Rock Slide, Stealth Rock
+
+== Gym Leader / Pryce | tier 2 | rating 5 | ai 3
+Dewgong | Thick Fat | Calm | | Ice Beam, Surf, Rest, Aqua Jet
+Piloswine @ Eviolite | Thick Fat | Adamant | | Earthquake, Icicle Crash, Stone Edge, Ice Shard
+Lapras | Water Absorb | Modest | | Ice Beam, Surf, Sing, Body Slam
+Mamoswine @ Sitrus Berry | Thick Fat | Adamant | | Earthquake, Icicle Crash, Ice Shard, Stone Edge
+
+== Gym Leader / Clair | tier 2 | rating 5 | ai 3 | boss
+Dragonair @ Leftovers | Shed Skin | Modest | | Dragon Pulse, Thunder Wave, Aqua Tail, Flamethrower
+Gyarados | Intimidate | Adamant | | Waterfall, Dragon Dance, Earthquake, Ice Fang
+Ampharos | Static | Modest | | Thunderbolt, Dragon Pulse, Signal Beam, Cotton Guard
+Kingdra @ Sitrus Berry | Swift Swim | Modest | | Dragon Pulse, Surf, Ice Beam, Rain Dance
+
+# ---- Tier 3: Elite (Elite Four) ----
+
+== Elite Four / Will | tier 3 | rating 6 | ai 3
+Xatu @ Leftovers | Magic Bounce | Calm | 252 HP / 4 SpA / 252 SpD | Psychic, Heat Wave, Roost, Thunder Wave
+Exeggutor @ Sitrus Berry | Harvest | Modest | 252 HP / 252 SpA / 4 SpD | Psychic, Giga Drain, Sleep Powder, Trick Room
+Slowbro @ Leftovers | Regenerator | Bold | 252 HP / 252 Def / 4 SpD | Scald, Psyshock, Slack Off, Thunder Wave
+Jynx @ Focus Sash | Dry Skin | Timid | 252 SpA / 4 SpD / 252 Spe | Ice Beam, Psychic, Lovely Kiss, Nasty Plot
+Bronzong @ Mental Herb | Levitate | Relaxed | 252 HP / 252 Def / 4 SpD | Gyro Ball, Psychic, Trick Room, Stealth Rock
+
+== Elite Four / Koga | tier 3 | rating 6 | ai 3
+Crobat @ Sitrus Berry | Inner Focus | Jolly | 252 Atk / 4 Def / 252 Spe | Brave Bird, Cross Poison, U-turn, Taunt
+Muk @ Black Sludge | Poison Touch | Adamant | 252 HP / 252 Atk / 4 Def | Gunk Shot, Knock Off, Ice Punch, Shadow Sneak
+Forretress @ Leftovers | Sturdy | Relaxed | 252 HP / 252 Def / 4 SpD | Gyro Ball, Spikes, Toxic Spikes, Rapid Spin
+Venomoth @ Focus Sash | Tinted Lens | Timid | 252 SpA / 4 SpD / 252 Spe | Quiver Dance, Bug Buzz, Sludge Bomb, Sleep Powder
+Ariados @ Lum Berry | Swarm | Adamant | 252 Atk / 4 Def / 252 Spe | Poison Jab, Megahorn, Sucker Punch, Toxic Spikes
+
+== Elite Four / Bruno | tier 3 | rating 6 | ai 3
+Hitmontop @ Leftovers | Intimidate | Adamant | 252 HP / 252 Atk / 4 Def | Close Combat, Sucker Punch, Rapid Spin, Fake Out
+Hitmonlee @ Life Orb | Unburden | Jolly | 252 Atk / 4 Def / 252 Spe | High Jump Kick, Knock Off, Stone Edge, Mach Punch
+Hitmonchan @ Assault Vest | Iron Fist | Adamant | 252 HP / 252 Atk / 4 SpD | Drain Punch, Ice Punch, Thunder Punch, Mach Punch
+Steelix @ Sitrus Berry | Sturdy | Adamant | 252 HP / 252 Atk / 4 Def | Earthquake, Iron Tail, Stone Edge, Explosion
+Machamp @ Expert Belt | No Guard | Adamant | 252 HP / 252 Atk / 4 Def | Dynamic Punch, Stone Edge, Ice Punch, Bullet Punch
+
+== Elite Four / Karen | tier 3 | rating 7 | ai 4 | boss
+Umbreon @ Leftovers | Synchronize | Calm | 252 HP / 4 Def / 252 SpD | Foul Play, Wish, Protect, Toxic
+Vileplume @ Black Sludge | Effect Spore | Calm | 252 HP / 4 SpA / 252 SpD | Giga Drain, Sludge Bomb, Sleep Powder, Moonlight
+Gengar @ Life Orb | Cursed Body | Timid | 4 HP / 252 SpA / 252 Spe | Shadow Ball, Sludge Bomb, Focus Blast, Destiny Bond
+Honchkrow @ Scope Lens | Super Luck | Adamant | 252 Atk / 4 Def / 252 Spe | Brave Bird, Sucker Punch, Night Slash, U-turn
+Houndoom @ Focus Sash | Flash Fire | Timid | 4 HP / 252 SpA / 252 Spe | Dark Pulse, Flamethrower, Nasty Plot, Sludge Bomb
+
+# ---- Tier 4: Master (Champions) ----
+
+== Champion / Lance | tier 4 | rating 9 | ai 4 | boss
+Dragonite @ Lum Berry | Multiscale | Adamant | 252 Atk / 4 Def / 252 Spe | Dragon Dance, Outrage, Extreme Speed, Fire Punch
+Gyarados @ Leftovers | Moxie | Jolly | 252 Atk / 4 Def / 252 Spe | Dragon Dance, Waterfall, Crunch, Earthquake
+Charizard @ Heavy-Duty Boots | Solar Power | Timid | 4 HP / 252 SpA / 252 Spe | Fire Blast, Air Slash, Focus Blast, Roost
+Aerodactyl @ Focus Sash | Unnerve | Jolly | 252 Atk / 4 Def / 252 Spe | Stone Edge, Earthquake, Stealth Rock, Taunt
+Kingdra @ Choice Specs | Swift Swim | Modest | 4 HP / 252 SpA / 252 Spe | Draco Meteor, Hydro Pump, Ice Beam, Flash Cannon
+Tyranitar @ Chople Berry | Sand Stream | Adamant | 252 HP / 252 Atk / 4 SpD | Stone Edge, Crunch, Earthquake, Dragon Dance
+
+== Rival / Silver | tier 4 | rating 8 | ai 4
+Weavile @ Focus Sash | Pressure | Jolly | 252 Atk / 4 Def / 252 Spe | Knock Off, Icicle Crash, Ice Shard, Low Kick
+Crobat @ Sitrus Berry | Inner Focus | Jolly | 252 Atk / 4 Def / 252 Spe | Brave Bird, Cross Poison, U-turn, Roost
+Magnezone @ Choice Specs | Magnet Pull | Modest | 252 HP / 252 SpA / 4 SpD | Thunderbolt, Flash Cannon, Volt Switch, Hidden Power
+Gengar @ Black Sludge | Cursed Body | Timid | 4 HP / 252 SpA / 252 Spe | Shadow Ball, Sludge Wave, Thunderbolt, Will-O-Wisp
+Alakazam @ Life Orb | Magic Guard | Timid | 4 HP / 252 SpA / 252 Spe | Psychic, Shadow Ball, Focus Blast, Energy Ball
+Feraligatr @ Life Orb | Sheer Force | Adamant | 252 Atk / 4 Def / 252 Spe | Liquidation, Ice Punch, Crunch, Dragon Dance

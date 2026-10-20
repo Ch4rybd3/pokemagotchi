@@ -1,5 +1,32 @@
 # Changelog
 
+## 10.0.0
+
+- **Battle Tower.** A new window (menu → Battle Tower) where your Pokémon take on
+  challenges of 7 battles in a row at Lv. 50, against the Gym Leaders, Elite Four
+  and Champions of the 8 regions and their trainers, one tower per region with
+  four tiers (Novice, Ace, Elite, Master). Clear a Master tier to open the
+  Radical Red Tower, with the bosses of the Pokémon Radical Red romhack.
+- **Pokémon Showdown inside.** Battles run on the real Pokémon Showdown simulator,
+  bundled as one module that runs in the shell (no Node.js needed): every move,
+  ability, item and mechanic as in the games. Battles are saved turn by turn and
+  pick up where you left them.
+- **Gen 3-style battles.** HP boxes, the text box, FIGHT / BAG / POKéMON / RUN,
+  the party screen, sprites that slide in, lunge and faint. Mouse or keyboard.
+- **Singles and Doubles.** See the other team, then pick 3 of your 6 Pokémon
+  (Singles) or 4 (VGC-style Doubles). Trainers bring 3 to 6 Pokémon.
+- **Battle teams.** Up to 6 teams of Lv. 50+ Pokémon, each with its held items.
+- **Trainers with a difficulty.** Each trainer has a fixed rating (1–10) and an AI
+  level from Novice (sometimes random) to Master (damage estimates, KOs, setup,
+  switches, Protect in Doubles). Generic trainers use Showdown's Random Battle sets.
+- **Battle Points.** Wins pay BP (more in higher tiers, for streaks, first clears
+  and first wins against named trainers). Spend them at the BP Counter on held
+  items (only found there), Ability Capsules and Patches, Bottle Caps, Rare
+  Candies, mints, rare TMs and a Master Ball.
+- **TMs.** All 229 TMs of Scarlet/Violet: 1 to 3 in every search, some on
+  expeditions, 10 a day at the shop. Teach them from a Pokémon's Moves page.
+- **Ability Capsule and Ability Patch** change your partner's ability.
+
 ## 9.0.0
 
 - **Expeditions.** Send a team of up to three on a Mystery Dungeon-style

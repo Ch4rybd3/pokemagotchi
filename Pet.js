@@ -41,6 +41,7 @@ var MASTER_BALL_ODDS = 0.003
 var STARTER_BALLS = 10
 var APPLES_FOUND = [1, 3]           // apples in every search, each one rolled for its quality
 var APPLE_QUALITY = { "apple": 70, "big-apple": 25, "golden-apple": 5 }
+var TMS_FOUND = [1, 3]              // TMs in every search, on top of the items
 var STARTER_MONEY = 300             // Poké Dollars given once, to try the shop
 var SELL_RATE = 0.5                 // the shop buys items back at half price
 
@@ -79,6 +80,8 @@ function condition(slug) { return Dex.species[slug][4] || {} }
 function itemName(id) { return Items.items[id] ? Items.items[id][0] : (Dex.items[id] || id) }
 function itemKind(id) { return Items.items[id] ? Items.items[id][1] : "evolution" }
 function itemText(id) { return Items.items[id] ? Items.items[id][3] : "" }
+// Sprite file of an item: TMs share one disc per type.
+function itemSprite(id) { return itemKind(id) === "tm" ? "tm-" + Items.items[id][4].type : id }
 
 var _children = null
 function children(slug) {
@@ -749,8 +752,8 @@ function rollItem(save, useful, taken) {
 }
 
 // The search of this half hour: a handful of Poké Balls (sometimes better
-// ones), 1 to 3 apples (sometimes Big or even Golden) and SEARCHES_PER_WINDOW items. Returns [{ id, count }], or null when
-// you already searched.
+// ones), 1 to 3 apples (sometimes Big or even Golden), SEARCHES_PER_WINDOW items
+// and 1 to 3 TMs. Returns [{ id, count }], or null when you already searched.
 function search(save, now) {
   refreshWindow(save, now)
   if (searchesLeft(save, now) <= 0) return null
@@ -769,10 +772,12 @@ function search(save, now) {
     add(pick(Object.keys(APPLE_QUALITY), function(k) { return APPLE_QUALITY[k] }), 1)
   var useful = usefulItems(save)
   for (var i = 0; i < SEARCHES_PER_WINDOW; i++) add(rollItem(save, useful, found), 1)
+  for (var t = randInt(TMS_FOUND[0], TMS_FOUND[1]); t > 0; t--) add(rollTm(Math.random), 1)
   return order.map(function(id) { return { id: id, count: found[id] } })
 }
 
-var KIND_ORDER = ["ball", "incense", "berry", "candy", "mint", "cap", "food", "medicine", "pp", "status", "revive", "escape", "evolution"]
+var KIND_ORDER = ["ball", "incense", "berry", "candy", "mint", "cap", "ability", "food", "medicine", "pp", "status", "revive", "escape",
+                  "evolution", "held", "tm"]
 var PROVISION_KINDS = ["food", "medicine", "pp", "status", "revive", "escape"]
 function isProvision(id) { return PROVISION_KINDS.indexOf(itemKind(id)) >= 0 }
 
@@ -800,6 +805,8 @@ function useItem(save, id, now, stat) {
     return "You lit the Incense! " + param.encounters + " wild encounters per half-hour for " + incenseLeft(save, now) + "."
   }
   if (kind === "ball") return "Throw it at a wild Pokémon."
+  if (kind === "tm") return "Teach it from a Pokémon's Moves page."
+  if (kind === "held") return "Give it to a Pokémon in a Battle Tower team."
   if (PROVISION_KINDS.indexOf(kind) >= 0) return "Pack it for an expedition: the team uses it on its own."
   if (!p) return "You need a partner Pokémon first."
   var n = name(p.species)
@@ -821,6 +828,17 @@ function useItem(save, id, now, stat) {
     if (p.nature === idx) return n + " already has a " + param.nature + " nature."
     p.nature = idx
     msg = n + "'s nature became " + param.nature + "!"
+  } else if (kind === "ability") {
+    var e = Info.species[p.species], ab = p.ability || { slot: 0, hidden: false }
+    if (param.hidden) {
+      if (!e[8]) return n + " has no Hidden Ability."
+      p.ability = { slot: ab.slot, hidden: !ab.hidden }
+    } else {
+      if (ab.hidden) return n + " has its Hidden Ability: use an Ability Patch instead."
+      if (e[7].length < 2) return n + " has only one regular Ability."
+      p.ability = { slot: ab.slot ? 0 : 1, hidden: false }
+    }
+    msg = n + "'s Ability became " + abilityName(abilityOf(p.species, p.ability)) + "!"
   } else if (kind === "cap") {
     if (param.all) {
       if (p.ivs.every(function(v) { return v === 31 })) return n + "'s IVs are already perfect."
@@ -1067,12 +1085,72 @@ function relearn(save, ref, id, slot) {
   return "1, 2 and… Poof! " + n + " forgot " + moveName(old) + " and learned " + moveName(id) + "!"
 }
 
+// ---- TMs ----
+// A TM teaches its move to any Pokémon that could learn it from a TM or TR in
+// some main-series game. It is used up, but the move stays at the Move Reminder.
+
+function tmMove(id) { return Items.items[id] && itemKind(id) === "tm" ? Items.items[id][4].move : 0 }
+
+function canLearnTm(p, id) {
+  var t = Items.items[id]
+  if (!p || !t || t[1] !== "tm") return false
+  var nums = Moves.machines[p.species] || ""
+  var hex = ("0" + parseInt(id.slice(2), 10).toString(16)).slice(-2)
+  for (var i = 0; i < nums.length; i += 2) if (nums.substr(i, 2) === hex) return true
+  return false
+}
+
+// TMs in the bag that this Pokémon can use and doesn't know right now.
+function tmsFor(save, p) {
+  if (!p) return []
+  return bagItems(save).filter(function(id) {
+    return itemKind(id) === "tm" && canLearnTm(p, id) && (p.moves || []).indexOf(tmMove(id)) < 0
+  })
+}
+
+// One TM, rarer ones less often.
+function rollTm(rand) {
+  var list = Moves.tms.map(function(t) { return Items.tmId(t[0]) })
+  var r = rand() * list.reduce(function(a, id) { return a + Items.TM_WEIGHTS[Items.items[id][4].rarity] }, 0)
+  for (var i = 0; i < list.length; i++) {
+    r -= Items.TM_WEIGHTS[Items.items[list[i]][4].rarity]
+    if (r <= 0) return list[i]
+  }
+  return list[list.length - 1]
+}
+
+// Teaches a TM, replacing the move in `slot` (or filling a free slot).
+function teachTm(save, ref, id, slot) {
+  var p = specimen(save, ref)
+  if (!p || !(save.bag[id] > 0)) return ""
+  if (!isBoxed(ref) && isAway(save, refRoot(ref))) return name(p.species) + " is away on an expedition."
+  if (!canLearnTm(p, id)) return name(p.species) + " can't learn " + moveName(tmMove(id)) + "."
+  var n = name(p.species), m = tmMove(id)
+  if (!p.moves) p.moves = []
+  if (p.moves.indexOf(m) >= 0) return n + " already knows " + moveName(m) + "."
+  if (!p.known) p.known = p.moves.slice()
+  var msg = ""
+  if (p.moves.length < MAX_MOVES) {
+    p.moves.push(m)
+    msg = n + " learned " + moveName(m) + "!"
+  } else {
+    if (slot === undefined || slot === null || slot < 0 || slot >= p.moves.length) return ""
+    var old = p.moves[slot]
+    p.moves[slot] = m
+    msg = "1, 2 and… Poof! " + n + " forgot " + moveName(old) + " and learned " + moveName(m) + "!"
+  }
+  if (p.known.indexOf(m) < 0) p.known.push(m)
+  consume(save, id)
+  return msg
+}
+
 // ---- Shop ----
 // Poké Dollars come from expeditions and from selling items. Most things are
 // always in stock; mints and the rarer evolution items change every day.
 
 var DAILY_MINTS = 3
 var DAILY_EVOLUTION = 4
+var DAILY_TMS = 10                  // TMs on sale each day, at most one very rare
 
 function price(id) { return Items.prices[id] || 0 }
 function sellPrice(id) { return Items.sellOnly[id] || Math.floor(price(id) * SELL_RATE) }
@@ -1097,8 +1175,21 @@ function shopStock(now) {
     { name: "Balls", items: shelf(["ball"]) },
     { name: "Provisions", items: shelf(["food", "medicine", "pp", "status", "revive", "escape"]) },
     { name: "Partner", items: shelf(["berry", "candy", "incense", "cap"]).concat(some(shelf(["mint"]), DAILY_MINTS)) },
-    { name: "Evolution", items: stones.concat(some(rare, DAILY_EVOLUTION)) }
+    { name: "Evolution", items: stones.concat(some(rare, DAILY_EVOLUTION)) },
+    { name: "TMs", items: dailyTms(rand) }
   ]
+}
+
+function dailyTms(rand) {
+  var out = [], guard = 0, veryRare = 0
+  while (out.length < DAILY_TMS && guard++ < 200) {
+    var id = rollTm(rand)
+    var rarity = Items.items[id][4].rarity
+    if (out.indexOf(id) >= 0 || (rarity === 4 && veryRare)) continue
+    if (rarity === 4) veryRare = 1
+    out.push(id)
+  }
+  return out.sort()
 }
 
 function inStock(id, now) { return shopStock(now).some(function(s) { return s.items.indexOf(id) >= 0 }) }

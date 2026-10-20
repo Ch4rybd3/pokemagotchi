@@ -1,0 +1,103 @@
+# Unova Tower: in the spirit of Black/White, Black 2/White 2 and the PWT.
+# == Class / Name | tier N | rating 1-10 | ai 1-4 [| boss]
+# Species @ Item | Ability | Nature | EVs | Moves  (empty EVs = 84 in every stat)
+
+# ---- Tier 1: Novice (Gyms 1-4) ----
+
+== Gym Leader / Cilan | tier 1 | rating 2 | ai 1
+Lillipup @ Oran Berry | Vital Spirit | Adamant | | Tackle, Bite, Work Up, Take Down
+Pansage | Gluttony | Jolly | | Vine Whip, Bite, Fury Swipes, Leer
+Sewaddle | Swarm | Adamant | | Bug Bite, Razor Leaf, String Shot, Protect
+Simisage @ Sitrus Berry | Gluttony | Jolly | | Seed Bomb, Bite, Fury Swipes, Work Up
+
+== Gym Leader / Lenora | tier 1 | rating 2 | ai 1
+Patrat @ Oran Berry | Keen Eye | Jolly | | Bite, Detect, Leer, Crunch
+Herdier | Intimidate | Adamant | | Take Down, Bite, Work Up, Retaliate
+Minccino | Technician | Jolly | | Tail Slap, Double Slap, Swift, Charm
+Watchog @ Sitrus Berry | Illuminate | Adamant | | Retaliate, Crunch, Hypnosis, Leer
+
+== Gym Leader / Burgh | tier 1 | rating 3 | ai 2
+Dwebble | Sturdy | Impish | | Rock Tomb, Bug Bite, Smack Down, Sand Attack
+Whirlipede | Poison Point | Jolly | | Poison Tail, Bug Bite, Screech, Pursuit
+Swadloon | Chlorophyll | Bold | | Razor Leaf, Bug Bite, Protect, String Shot
+Leavanny @ Sitrus Berry | Swarm | Jolly | | Struggle Bug, Razor Leaf, Protect, String Shot
+
+== Gym Leader / Elesa | tier 1 | rating 3 | ai 2 | boss
+Emolga @ Oran Berry | Static | Timid | | Volt Switch, Aerial Ace, Quick Attack, Double Team
+Blitzle | Lightning Rod | Jolly | | Spark, Flame Charge, Quick Attack, Pursuit
+Joltik | Compound Eyes | Timid | | Electroweb, Bug Bite, Thunder Wave, Absorb
+Zebstrika @ Sitrus Berry | Lightning Rod | Jolly | | Volt Switch, Flame Charge, Quick Attack, Pursuit
+
+# ---- Tier 2: Ace (Gyms 5-8) ----
+
+== Gym Leader / Clay | tier 2 | rating 4 | ai 2
+Krokorok | Intimidate | Adamant | | Bulldoze, Crunch, Torment, Swagger
+Palpitoad | Swift Swim | Modest | | Bubble Beam, Mud Shot, Supersonic, Aqua Ring
+Sandslash | Sand Rush | Adamant | | Earthquake, Rock Slide, Swords Dance, Rapid Spin
+Excadrill @ Sitrus Berry | Sand Rush | Adamant | | Bulldoze, Rock Slide, Metal Claw, Hone Claws
+
+== Gym Leader / Skyla | tier 2 | rating 4 | ai 2
+Swoobat | Simple | Timid | | Air Slash, Heart Stamp, Calm Mind, Amnesia
+Unfezant | Super Luck | Adamant | | Air Slash, Night Slash, Quick Attack, Tailwind
+Archeops | Defeatist | Jolly | | Acrobatics, Rock Slide, Dragon Claw, U-turn
+Swanna @ Sitrus Berry | Big Pecks | Modest | | Air Slash, Bubble Beam, Aerial Ace, Feather Dance
+
+== Gym Leader / Brycen | tier 2 | rating 5 | ai 3
+Vanillish | Ice Body | Modest | | Frost Breath, Mirror Shot, Acid Armor, Mist
+Cryogonal | Levitate | Calm | | Freeze-Dry, Rapid Spin, Recover, Reflect
+Vanilluxe | Snow Warning | Modest | | Blizzard, Flash Cannon, Freeze-Dry, Acid Armor
+Beartic @ Sitrus Berry | Swift Swim | Adamant | | Icicle Crash, Superpower, Aqua Jet, Swords Dance
+
+== Gym Leader / Drayden | tier 2 | rating 5 | ai 3 | boss
+Fraxure | Mold Breaker | Jolly | | Dragon Claw, Dragon Dance, Slash, Assurance
+Druddigon @ Sitrus Berry | Rough Skin | Adamant | | Dragon Tail, Revenge, Retaliate, Night Slash
+Flygon | Levitate | Jolly | | Earthquake, Dragon Claw, U-turn, Crunch
+Haxorus @ Sitrus Berry | Mold Breaker | Adamant | | Dragon Claw, Dragon Dance, Earthquake, Assurance
+
+# ---- Tier 3: Elite (Elite Four) ----
+
+== Elite Four / Shauntal | tier 3 | rating 6 | ai 3
+Cofagrigus @ Leftovers | Mummy | Bold | 252 HP / 252 Def / 4 SpD | Shadow Ball, Will-O-Wisp, Haze, Pain Split
+Jellicent @ Leftovers | Cursed Body | Calm | 252 HP / 4 Def / 252 SpD | Scald, Shadow Ball, Will-O-Wisp, Recover
+Golurk @ Sitrus Berry | No Guard | Adamant | 252 HP / 252 Atk / 4 Def | Dynamic Punch, Earthquake, Shadow Punch, Rock Polish
+Chandelure @ Choice Specs | Flash Fire | Modest | 4 HP / 252 SpA / 252 Spe | Shadow Ball, Fire Blast, Energy Ball, Trick
+Drifblim @ Sitrus Berry | Unburden | Calm | 252 HP / 4 SpA / 252 SpD | Shadow Ball, Will-O-Wisp, Destiny Bond, Calm Mind
+
+== Elite Four / Marshal | tier 3 | rating 6 | ai 3
+Throh @ Leftovers | Guts | Impish | 252 HP / 4 Atk / 252 Def | Storm Throw, Bulk Up, Rest, Knock Off
+Sawk @ Choice Scarf | Mold Breaker | Jolly | 252 Atk / 4 Def / 252 Spe | Close Combat, Knock Off, Stone Edge, Ice Punch
+Conkeldurr @ Flame Orb | Guts | Adamant | 252 HP / 252 Atk / 4 Def | Drain Punch, Mach Punch, Knock Off, Ice Punch
+Mienshao @ Life Orb | Regenerator | Jolly | 252 Atk / 4 Def / 252 Spe | High Jump Kick, U-turn, Knock Off, Fake Out
+Lucario @ Focus Sash | Inner Focus | Adamant | 252 Atk / 4 Def / 252 Spe | Close Combat, Meteor Mash, Extreme Speed, Swords Dance
+
+== Elite Four / Grimsley | tier 3 | rating 7 | ai 3
+Scrafty @ Leftovers | Intimidate | Careful | 252 HP / 4 Atk / 252 SpD | Drain Punch, Knock Off, Bulk Up, Fake Out
+Krookodile @ Choice Scarf | Moxie | Jolly | 252 Atk / 4 Def / 252 Spe | Earthquake, Knock Off, Stone Edge, Close Combat
+Liepard @ Focus Sash | Prankster | Jolly | 252 Atk / 4 Def / 252 Spe | Knock Off, Thunder Wave, Encore, Fake Out
+Bisharp @ Life Orb | Defiant | Adamant | 252 Atk / 4 Def / 252 Spe | Sucker Punch, Iron Head, Knock Off, Swords Dance
+Honchkrow @ Life Orb | Moxie | Adamant | 252 Atk / 4 Def / 252 Spe | Brave Bird, Sucker Punch, Superpower, Heat Wave
+
+== Elite Four / Caitlin | tier 3 | rating 7 | ai 4 | boss
+Musharna @ Leftovers | Synchronize | Bold | 252 HP / 252 Def / 4 SpD | Psychic, Moonlight, Calm Mind, Thunder Wave
+Sigilyph @ Life Orb | Magic Guard | Timid | 4 HP / 252 SpA / 252 Spe | Psychic, Air Slash, Heat Wave, Cosmic Power
+Reuniclus @ Life Orb | Magic Guard | Quiet | 252 HP / 252 SpA / 4 Def | Psychic, Focus Blast, Shadow Ball, Trick Room
+Gothitelle @ Leftovers | Shadow Tag | Calm | 252 HP / 4 SpA / 252 SpD | Psychic, Thunderbolt, Calm Mind, Rest
+Metagross @ Choice Band | Clear Body | Adamant | 252 HP / 252 Atk / 4 Def | Meteor Mash, Zen Headbutt, Earthquake, Bullet Punch
+
+# ---- Tier 4: Master (Champions) ----
+
+== Champion / Alder | tier 4 | rating 9 | ai 4 | boss
+Accelgor @ Focus Sash | Sticky Hold | Timid | 4 HP / 252 SpA / 252 Spe | Bug Buzz, Focus Blast, Spikes, Encore
+Bouffalant @ Choice Band | Sap Sipper | Adamant | 252 HP / 252 Atk / 4 Def | Head Charge, Earthquake, Megahorn, Stone Edge
+Druddigon @ Life Orb | Rough Skin | Adamant | 252 HP / 252 Atk / 4 Def | Outrage, Sucker Punch, Fire Punch, Superpower
+Vanilluxe @ Never-Melt Ice | Snow Warning | Modest | 4 HP / 252 SpA / 252 Spe | Blizzard, Flash Cannon, Freeze-Dry, Explosion
+Escavalier @ Choice Band | Swarm | Adamant | 252 HP / 252 Atk / 4 SpD | Megahorn, Iron Head, Knock Off, Drill Run
+Volcarona @ Lum Berry | Flame Body | Timid | 4 HP / 252 SpA / 252 Spe | Quiver Dance, Fiery Dance, Bug Buzz, Giga Drain
+
+== Champion / Iris | tier 4 | rating 9 | ai 4 | boss
+Hydreigon @ Life Orb | Levitate | Modest | 4 HP / 252 SpA / 252 Spe | Draco Meteor, Dark Pulse, Flamethrower, Earth Power
+Druddigon @ Rocky Helmet | Rough Skin | Adamant | 252 HP / 252 Atk / 4 Def | Dragon Tail, Gunk Shot, Glare, Sucker Punch
+Archeops @ Flying Gem | Defeatist | Jolly | 252 Atk / 4 Def / 252 Spe | Acrobatics, Head Smash, Earthquake, Roost
+Aggron @ Sitrus Berry | Rock Head | Adamant | 252 HP / 252 Atk / 4 Def | Head Smash, Heavy Slam, Earthquake, Autotomize
+Lapras @ Leftovers | Water Absorb | Modest | 252 HP / 252 SpA / 4 SpD | Hydro Pump, Freeze-Dry, Thunderbolt, Ice Shard
+Haxorus @ Lum Berry | Mold Breaker | Jolly | 252 Atk / 4 Def / 252 Spe | Outrage, Earthquake, Poison Jab, Dragon Dance

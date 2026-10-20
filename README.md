@@ -4,8 +4,9 @@
 
 Raise a partner Pokémon next to your clock, explore the tall grass between two
 commits, catch all 905 Pokémon (Gen 1–8), fill their boxes, hunt shinies with
-the Nav-Dex, train them against a Substitute doll, teach them their moves and
-send them on Mystery Dungeon-style expeditions.
+the Nav-Dex, train them against a Substitute doll, teach them their moves, send
+them on Mystery Dungeon-style expeditions and take on the Gym Leaders of every
+region at the Battle Tower.
 
 ![Pokemagotchi](preview.png)
 
@@ -47,8 +48,20 @@ send them on Mystery Dungeon-style expeditions.
 - **Day Care and training.** Up to 10 of the Pokémon you aren't walking with
   play at the Day Care and slowly gain XP; the others rest. Up to 5 can train
   EVs or levels against the Substitute doll.
-- **Shop.** Expeditions pay Poké Dollars: buy Balls, provisions, candies, mints
-  and evolution items, or sell what you don't need.
+- **Shop.** Expeditions pay Poké Dollars: buy Balls, provisions, candies, mints,
+  evolution items and TMs, or sell what you don't need.
+- **TMs.** All 229 TMs of Scarlet/Violet. Every search finds 1 to 3, expeditions
+  bring some home and the shop sells 10 a day. A Pokémon can use a TM if it could
+  learn that move from a TM in any main-series game; the TM is used up, the move
+  stays at the Move Reminder.
+- **Battle Tower.** Challenges of 7 battles at Lv. 50 against Gym Leaders, Elite
+  Four, Champions and trainers of all 8 regions, then Pokémon Radical Red's
+  toughest trainers. Battles run on the real **Pokémon Showdown** simulator,
+  inside the shell (no Node.js needed), in a Gen 3-style window: Singles (pick 3
+  of 6) and VGC-style Doubles (pick 4 of 6) after seeing the other team.
+- **Battle teams and held items.** Build up to 6 teams of Lv. 50+ Pokémon and give
+  them held items (Leftovers, Choice Band, Focus Sash…), only won at the Tower with
+  Battle Points.
 
 ## Screenshots
 
@@ -116,12 +129,13 @@ Click the Pokémon (or the Poké Ball when you have none yet) in your bar.
 | Main screen | **Feed**, **Pet**, **Play**, **Wild** (encounter), **Search** (items), **Bag**, **Plan an expedition**, and one line per team out exploring. Click your partner for its summary. |
 | Expedition line | Follow that team: the corridor it walks down, HP / PP / fullness, the log (click a fight for the details), **Call the team back**, then its report. |
 | Plan an expedition | A window to pick the place, difficulty, team and provisions, plus the **History**. Setting off closes it. |
-| Title (`NAME ▾`) | Opens the **menu**: Partner, Pokédex, Bag, Shop, Day Care, Training, Expeditions, Exp. history, Summary. |
+| Title (`NAME ▾`) | Opens the **menu**: Partner, Pokédex, Bag, Shop, Day Care, Training, Expeditions, Exp. history, Summary, Battle Tower. |
 | Pokédex | Search by name, filter to caught families, click an entry to open its **box**. |
-| Shop | **Buy** by shelf (Balls, Provisions, Partner, Evolution) or **Sell** at half price. |
+| Shop | **Buy** by shelf (Balls, Provisions, Partner, Evolution, TMs) or **Sell** at half price (TMs sell for little). |
 | Box | All your Pokémon of that family (⌂ = at the Day Care, ★ = partner) and the **Nav-Dex** for that family. |
 | Summary | Stats, IVs, EVs, nature and ability. Buttons for **Evolve**, **Train**, **Moves**, **Make partner**, **To Day Care** and **Release**. |
-| Moves | Click a move to see its description. **Move Reminder** brings back an older move. |
+| Moves | Click a move to see its description. **Move Reminder** brings back an older move, **TMs** teaches one from your bag. |
+| Battle Tower | A window with four tabs: **Challenge** (tower, format, tier, team), **Teams** (build teams, give held items), **BP Counter** and **Records**. Battles open in the same window. |
 | Day Care | The 10 Pokémon earning XP there, and all the others: click one to send it or take it back. |
 
 ### Game rules
@@ -132,7 +146,8 @@ Click the Pokémon (or the Poké Ball when you have none yet) in your bar.
 | Passive XP | 36 XP/h for your partner while fullness and happiness are ≥ 50; 12 XP/h for the 10 Pokémon at the Day Care, none for the others |
 | Level | 5 + XP / 10, up to Lv. 100 |
 | Wild encounters | 3 per half hour (10 with Incense), refilled at :00 and :30. Wild Pokémon are Lv. 1–40 |
-| Search | 1 per half hour: 1–5 Poké Balls, maybe Great (30%), Ultra (8%) or Master (0.3%) Balls, 1–3 apples (Apple 70%, Big Apple 25%, Golden Apple 5%) and 5 items |
+| Search | 1 per half hour: 1–5 Poké Balls, maybe Great (30%), Ultra (8%) or Master (0.3%) Balls, 1–3 apples (Apple 70%, Big Apple 25%, Golden Apple 5%), 5 items and 1–3 TMs |
+| TMs | Rarity 1–4 by the move's power (55% / 30% / 12% / 3% of the TMs found). Shop: ₽300 / 800 / 1,500 / 3,000; it buys them back for ₽20 / 50 / 120 / 250 |
 | Poké Dollars | Per expedition: (6 per wild Pokémon defeated + 12 per floor + 80 per boss) × 1 / 1.5 / 2.2 / 3 by difficulty, +25% if cleared, half if defeated. Shop sells back at half price |
 | Catching | (catch rate × Ball × 7/9 × 1.5 / 255)^0.75 per throw, max 95%; ×2 after a rock, ×0.5 while eating |
 | Expeditions | Easy 5 floors / 30 min, Normal 10 / 1 h, Hard 15 / 2 h, Expert 20 / 4 h. Wild Pokémon are 0–5 levels under the team |
@@ -150,6 +165,50 @@ to swap it with the Pokémon there (your partner, if that's the one).
 
 Wild Pokémon come from the families you haven't caught yet, unless the Nav-Dex
 is on. Rare Pokémon (catch rate 45 or less) show up less, legendaries much less.
+
+### Battle Tower
+
+Open **Battle Tower** from the menu. Pick a tower (Kanto, Johto, Hoenn, Sinnoh,
+Unova, Kalos, Alola, Galar), Singles or Doubles, a tier and one of your battle
+teams, then **Start the challenge**.
+
+- **Who can enter**: your Day Care Pokémon (and your partner) at **Lv. 50 or
+  more**. In battle everybody is Lv. 50, with their own IVs, EVs, nature, ability
+  and moves. Teams have 3 to 6 Pokémon, one of each species and one of each held
+  item (Item Clause).
+- **Team Preview**: you see the other trainer's team, then choose 3 Pokémon
+  (Singles) or 4 (Doubles) and their order. Trainers bring 3 to 6 Pokémon.
+- **A challenge** is 7 battles in a row, the easiest trainers first and a boss
+  last. Your Pokémon are healed between battles; no items can be used. Lose once
+  and the challenge ends. After 7 wins you can cash out or keep the streak going.
+  Close the window whenever you like: the challenge and the battle in progress wait.
+- **Tiers**: Novice (Gyms 1–4) ★, Ace (Gyms 5–8) ★★, Elite (Elite Four) ★★★,
+  Master (Champions) ★★★★. Clearing a tier opens the next one. Clearing a Master
+  tier anywhere opens the **Radical Red Tower** (Kanto League, Johto Leaders,
+  Rematch), with teams from the Pokémon Radical Red romhack.
+- **Trainers**: every Gym Leader, Elite Four member and Champion of the 8 regions
+  (teams in the spirit of their games), generic trainers built from Pokémon
+  Showdown's Random Battle sets with the region's Pokémon, and Radical Red's
+  bosses and Ace Trainers. Each one has a fixed difficulty rating (1–10) and an AI
+  level: Novice trainers sometimes pick a move at random, Masters estimate damage,
+  go for KOs, set up, switch out of bad matchups and protect in Doubles.
+- **Controls**: mouse, or the keyboard like a GBA: arrows, **Z** / **Enter** = A,
+  **X** / **Backspace** = B. Click the text box (or press A) to speed it up.
+
+| Reward | Value |
+| --- | --- |
+| Win | 1 / 2 / 3 / 4 BP by tier (5 / 6 / 7 at the Radical Red Tower), +1 BP per challenge already cleared in this streak (up to +3) |
+| First win against a named trainer | +2 BP |
+| Challenge cleared (7 wins) | 3 × the BP of a win, and ₽100 × the tier's level |
+| First clear of a tier | 10 × the BP of a win |
+
+The **BP Counter** sells held items (16–48 BP), the Ability Capsule (40) and
+Ability Patch (120), Bottle Caps (60, Gold 200), Rare Candies (24), Exp. Candy XL
+(20), mints (16), 6 rare TMs a day (32 / 64) and a Master Ball (400). Prices are
+set so that an hour at the Tower pays about as much as an Expert expedition.
+
+The window is a normal window: Hyprland tiles it. To make it float, add a window
+rule matching the title `Pokemagotchi – Battle Tower`.
 
 ### Expeditions
 
@@ -187,7 +246,9 @@ still has room.
   interact with the widget, or once when an expedition comes home)
 
 The plugin needs no network access and starts no background process. It only
-runs `notify-send` for notifications and writes nothing but its save file.
+runs `notify-send` for notifications and writes nothing but its save file. Battle
+Tower battles run in a worker thread of the shell, loaded the first time you open
+the Tower.
 
 ## Development
 
@@ -201,7 +262,16 @@ runs `notify-send` for notifications and writes nothing but its save file.
 | `CorridorScene.qml` | The corridor a team walks down, in the popup |
 | `Dex.js`, `Info.js`, `Items.js`, `Moves.js`, `Battle.js` | Generated game data |
 | `PokeSprite.qml`, `ItemSprite.qml`, `SubstituteScene.qml` | Sprite helpers |
-| `tools/gen-moves.py` | Regenerates `Moves.js` from the PokeAPI CSV dump |
+| `Tower.js` | Battle Tower: towers, tiers, battle teams, challenges, rewards, BP Counter |
+| `TowerWindow.qml`, `BattleScene.qml` | The Battle Tower window and its Gen 3-style battle scene |
+| `TowerWorker.mjs`, `TowerEngine.mjs` | Battles in a WorkerScript: start, replay, your choices and the trainer's |
+| `TowerAI.mjs` | The trainers' AI (levels 1–4) |
+| `BattleText.mjs` | Showdown's battle log → the lines and animations of the scene |
+| `Showdown.mjs` | Generated: the Pokémon Showdown simulator as one ES module |
+| `Trainers.js` | Generated: towers and trainers |
+| `tools/gen-showdown.mjs` | Rebuilds `Showdown.mjs` from a Pokémon Showdown checkout (needs Node.js, only to build) |
+| `tools/gen-trainers.mjs` | Rebuilds `Trainers.js` from `tools/trainers/*.txt`, Showdown's Random Battle sets and the Radical Red dump |
+| `tools/gen-moves.py` | Regenerates `Moves.js` (learnsets, moves, TMs) from the PokeAPI CSV dump |
 | `tools/gen-battle.py` | Regenerates `Battle.js` (EV yields, legendaries, type chart, move effects) |
 
 Saving a file reloads the widget. Changes to the `.js` libraries are cached by
@@ -218,11 +288,24 @@ python3 tools/gen-moves.py /tmp/pokeapi-csv   # downloads the CSVs it needs
 python3 tools/gen-battle.py /tmp/pokeapi-csv  # run it after gen-moves.py
 ```
 
+To rebuild the Battle Tower data (Node.js, git and npm; the first run clones and
+builds Pokémon Showdown in the temporary directory):
+
+```bash
+node tools/gen-showdown.mjs                   # Showdown.mjs
+node tools/gen-trainers.mjs                   # Trainers.js, run it after gen-showdown.mjs
+```
+
 ## Credits
 
 - Pokémon sprites: [pokemon-colorscripts](https://gitlab.com/phoneybadger/pokemon-colorscripts)
   (MIT), based on [PokéSprite](https://github.com/msikma/pokesprite).
-- Item sprites: [PokeAPI/sprites](https://github.com/PokeAPI/sprites).
+- Item sprites: [PokeAPI/sprites](https://github.com/PokeAPI/sprites) and
+  [PokéSprite](https://github.com/msikma/pokesprite) (MIT).
+- Battle Tower battles: [Pokémon Showdown](https://github.com/smogon/pokemon-showdown) (MIT).
+- Radical Red Tower trainers: Pokémon Radical Red by soupercell, from the [4.1 trainer data dump](https://gist.github.com/Rudo2204/7f9e4a3ceaf077d623d3c37b1f921601)
+  by Rudo2204 (based on luckytyphlosion's).
+- Battle Tower font: [Pixelify Sans](https://github.com/eifetx/Pixelify-Sans) (SIL Open Font License 1.1).
 - Pokédex entries, stats, abilities, natures, evolutions, items and moves: [PokeAPI](https://pokeapi.co)
   ([BSD-3-Clause](https://github.com/PokeAPI/pokeapi/blob/master/LICENSE.md)).
 
